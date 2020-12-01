@@ -1,4 +1,4 @@
-use advent_2020::expense_report;
+use advent_2020::expense;
 fn main() {
     let expenses = std::fs::read_to_string("src/bin/day_01/input.txt")
         .expect("can't read input file")
@@ -6,7 +6,8 @@ fn main() {
         .split("\n")
         .map(|s| s.parse::<i32>().unwrap())
         .collect::<Vec<_>>();
-    let report = expense_report::Report::new(&expenses);
+    let report = expense::Report::new(&expenses);
+
     let nums = report.pair_with_sum(2020).unwrap();
     let product = nums.into_iter().fold(1, |acc, elem| acc * elem);
     println!("Product for Part 1: {}", product);

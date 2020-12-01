@@ -15,31 +15,34 @@ impl Report {
     }
 
     pub fn pair_with_sum(&self, sum: i32) -> Result<HashSet<i32>> {
-        for num in self.items.iter().cloned() {
-            if self.items.contains(&(sum - num)) {
-                return Ok(vec![num, sum - num].into_iter().collect());
-            }
+        match self
+            .items
+            .iter()
+            .find(|item| self.items.contains(&(sum - **item)))
+        {
+            Some(item) => Ok(vec![*item, sum - *item].into_iter().collect()),
+            None => Err(Error::new(
+                ErrorKind::NotFound,
+                format!("pair with sum {} not found", sum),
+            )),
         }
-        Err(Error::new(
-            ErrorKind::NotFound,
-            format!("pair with sum {} not found", sum),
-        ))
     }
 
     pub fn triple_with_sum(self, sum: i32) -> Result<HashSet<i32>> {
-        for num in self.items.iter().cloned() {
-            match self.pair_with_sum(sum - num) {
-                Ok(mut num_map) => {
-                    num_map.insert(num);
-                    return Ok(num_map);
-                }
-                Err(_) => continue,
+        let mut found_item = 0;
+        match self.items.iter().find_map(|item| {
+            found_item = *item;
+            self.pair_with_sum(sum - *item).ok()
+        }) {
+            Some(mut pair) => {
+                pair.insert(found_item);
+                Ok(pair)
             }
+            None => Err(Error::new(
+                ErrorKind::NotFound,
+                format!("triple with sum {} not found", sum),
+            )),
         }
-        Err(Error::new(
-            ErrorKind::NotFound,
-            format!("triple with sum {} not found", sum),
-        ))
     }
 }
 
