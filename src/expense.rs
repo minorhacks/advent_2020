@@ -18,9 +18,9 @@ impl Report {
         match self
             .items
             .iter()
-            .find(|item| self.items.contains(&(sum - **item)))
+            .find(|&&item| self.items.contains(&(sum - item)))
         {
-            Some(item) => Ok(vec![*item, sum - *item].into_iter().collect()),
+            Some(&item) => Ok(vec![item, sum - item].into_iter().collect()),
             None => Err(Error::new(
                 ErrorKind::NotFound,
                 format!("pair with sum {} not found", sum),
@@ -30,9 +30,9 @@ impl Report {
 
     pub fn triple_with_sum(self, sum: i32) -> Result<HashSet<i32>> {
         let mut found_item = 0;
-        match self.items.iter().find_map(|item| {
-            found_item = *item;
-            self.pair_with_sum(sum - *item).ok()
+        match self.items.iter().find_map(|&item| {
+            found_item = item;
+            self.pair_with_sum(sum - item).ok()
         }) {
             Some(mut pair) => {
                 pair.insert(found_item);
