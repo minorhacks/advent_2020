@@ -20,7 +20,7 @@ impl Report {
             .iter()
             .find(|&&item| self.items.contains(&(sum - item)))
         {
-            Some(&item) => Ok(vec![item, sum - item].into_iter().collect()),
+            Some(&item) => Ok([item, sum - item].iter().cloned().collect()),
             None => Err(Error::new(
                 ErrorKind::NotFound,
                 format!("pair with sum {} not found", sum),
