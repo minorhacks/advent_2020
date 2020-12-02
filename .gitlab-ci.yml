@@ -1,0 +1,14 @@
+image: "rustlang/rust:nightly"
+
+test:
+  script:
+    - rustc --version && cargo --version
+    - cargo test --all
+  tags: ["linux"]
+
+variables:
+  CARGO_HOME: $CI_PROJECT_DIR/cargo
+
+cache:
+  paths:
+    - cargo/
