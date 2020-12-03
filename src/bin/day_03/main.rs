@@ -1,8 +1,10 @@
 use advent_2020::toboggan;
 
 fn main() {
-    let map =
-        toboggan::Map::from_string(&std::fs::read_to_string("src/bin/day_03/input.txt").unwrap());
+    let map = std::fs::read_to_string("src/bin/day_03/input.txt")
+        .unwrap()
+        .parse()
+        .unwrap();
     println!("Part 1: {}", toboggan::count_trees(&map, 3, 1));
 
     let trees_product =
