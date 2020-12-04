@@ -1,3 +1,4 @@
+pub mod credentials;
 pub mod expense;
 pub mod password;
 pub mod toboggan;
