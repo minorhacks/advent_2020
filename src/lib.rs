@@ -1,3 +1,4 @@
+pub mod airplane;
 pub mod credentials;
 pub mod expense;
 pub mod password;
