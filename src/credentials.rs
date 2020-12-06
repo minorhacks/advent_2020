@@ -23,6 +23,7 @@ pub struct UnvalidatedPassport {
     fields: HashMap<String, String>,
 }
 
+#[allow(dead_code)]
 pub struct Passport {
     byr: BirthYear,
     iyr: IssueYear,
