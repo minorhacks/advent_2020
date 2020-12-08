@@ -177,6 +177,19 @@ impl UnvalidatedPassport {
     }
 }
 
+impl std::fmt::Display for UnvalidatedPassport {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut pairs = self.fields.iter().collect::<Vec<_>>();
+        pairs.sort_by(|a, b| a.0.cmp(b.0));
+        let pair_str = pairs
+            .iter()
+            .map(|pair| format!("{}:{}", pair.0, pair.1).to_string())
+            .collect::<Vec<_>>()
+            .join(" ");
+        write!(f, "{}", pair_str)
+    }
+}
+
 impl TryFrom<UnvalidatedPassport> for Passport {
     type Error = Box<dyn std::error::Error>;
 

@@ -10,16 +10,19 @@ fn main() {
         .collect::<Vec<_>>();
     println!("Num passports: {}", passports.len());
 
-    let have_correct_fields: usize = passports
+    let have_correct_fields = passports
         .iter()
-        .map(
-            |p| match p.has_fields(&credentials::valid_passport_fields()) {
-                true => 1,
-                false => 0,
-            },
-        )
-        .sum();
-    println!("Part 1: {}", have_correct_fields);
+        .filter(|p| p.has_fields(&credentials::valid_passport_fields()))
+        .collect::<Vec<_>>();
+    println!("Part 1: {}", have_correct_fields.len());
+
+    // Dump part 1 passports to file for debugging
+    let output = have_correct_fields
+        .iter()
+        .map(|p| p.to_string())
+        .collect::<Vec<_>>()
+        .join("\n");
+    std::fs::write("src/bin/day_04/output.txt", output).unwrap();
 
     let valid_passports = passports
         .into_iter()
