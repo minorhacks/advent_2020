@@ -1,5 +1,3 @@
-#![feature(str_split_once)]
-
 pub mod airplane;
 pub mod credentials;
 pub mod customs;

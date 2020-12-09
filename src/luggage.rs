@@ -1,6 +1,13 @@
 use std::collections::HashMap;
 use std::collections::HashSet;
 
+fn split_once<'a>(s: &'a str, delimiter: &'a str) -> Option<(&'a str, &'a str)> {
+    let pieces = s.splitn(2, delimiter).collect::<Vec<_>>();
+    match pieces.len() {
+        2 => Some((pieces[0], pieces[1])),
+        _ => None,
+    }
+}
 #[derive(Debug, PartialEq, Eq, Hash, Clone)]
 pub struct Color(String);
 
@@ -87,7 +94,7 @@ fn parse_bag_str(mut s: &str) -> Option<(usize, Color)> {
         _ => {
             let quantity = match s.trim().chars().nth(0).unwrap() {
                 '0'..='9' => {
-                    let (quantity_str, color_str) = s.trim().split_once(" ").unwrap();
+                    let (quantity_str, color_str) = split_once(s.trim(), " ").unwrap();
                     s = color_str;
                     quantity_str.parse::<usize>().unwrap()
                 }
@@ -109,7 +116,7 @@ fn parse_bag_str(mut s: &str) -> Option<(usize, Color)> {
 }
 
 fn parse_bag_rule(s: &str) -> (Color, Vec<(usize, Color)>) {
-    let (container, contained) = s.split_once("contain").unwrap();
+    let (container, contained) = split_once(s, "contain").unwrap();
     let container_color = parse_bag_str(container).unwrap().1;
     let contained = contained
         .trim_end_matches('.')
