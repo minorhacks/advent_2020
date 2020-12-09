@@ -10,16 +10,14 @@ impl Color {
     }
 }
 
-#[derive(Debug, PartialEq)]
-pub struct BagQuantity(usize);
-
 #[derive(Debug)]
 pub struct RulesGraph(HashMap<Color, RulesGraphNode>);
 
 #[derive(Debug)]
 struct RulesGraphNode {
     color: Color,
-    held_by: HashMap<Color, BagQuantity>,
+    held_by: HashSet<Color>,
+    holds: Vec<(usize, Color)>,
 }
 
 impl RulesGraph {
@@ -30,7 +28,7 @@ impl RulesGraph {
         node_queue.push_back(node);
         while !node_queue.is_empty() {
             let node = node_queue.pop_front().unwrap();
-            for (c, q) in node.held_by.iter() {
+            for c in node.held_by.iter() {
                 if colors.insert(c.clone()) {
                     node_queue.push_back(self.0.get(&c).unwrap());
                 }
@@ -39,18 +37,32 @@ impl RulesGraph {
         colors
     }
 
-    fn insert(&mut self, c: Color, contains: Vec<(BagQuantity, Color)>) {
-        for (quantity, color) in contains {
+    pub fn bags_inside(&self, color: &Color) -> usize {
+        self.0
+            .get(color)
+            .unwrap()
+            .holds
+            .iter()
+            .fold(0, |acc, (quantity, color)| {
+                acc + quantity + quantity * self.bags_inside(color)
+            })
+    }
+
+    fn insert(&mut self, c: Color, contains: Vec<(usize, Color)>) {
+        for (_quantity, color) in &contains {
             let node = self.0.entry(color.clone()).or_insert(RulesGraphNode {
                 color: color.clone(),
-                held_by: HashMap::new(),
+                held_by: HashSet::new(),
+                holds: Vec::new(),
             });
-            node.held_by.insert(c.clone(), quantity);
+            node.held_by.insert(c.clone());
         }
-        let _ = self.0.entry(c.clone()).or_insert(RulesGraphNode {
+        let node = self.0.entry(c.clone()).or_insert(RulesGraphNode {
             color: c,
-            held_by: HashMap::new(),
+            held_by: HashSet::new(),
+            holds: Vec::new(),
         });
+        node.holds = contains;
     }
 }
 
@@ -69,7 +81,7 @@ impl std::str::FromStr for RulesGraph {
     }
 }
 
-fn parse_bag_str(mut s: &str) -> Option<(BagQuantity, Color)> {
+fn parse_bag_str(mut s: &str) -> Option<(usize, Color)> {
     match s.trim() {
         "no other bags" => None,
         _ => {
@@ -77,9 +89,9 @@ fn parse_bag_str(mut s: &str) -> Option<(BagQuantity, Color)> {
                 '0'..='9' => {
                     let (quantity_str, color_str) = s.trim().split_once(" ").unwrap();
                     s = color_str;
-                    BagQuantity(quantity_str.parse::<usize>().unwrap())
+                    quantity_str.parse::<usize>().unwrap()
                 }
-                _ => BagQuantity(0),
+                _ => 0,
             };
 
             let color = Color(
@@ -96,7 +108,7 @@ fn parse_bag_str(mut s: &str) -> Option<(BagQuantity, Color)> {
     }
 }
 
-fn parse_bag_rule(s: &str) -> (Color, Vec<(BagQuantity, Color)>) {
+fn parse_bag_rule(s: &str) -> (Color, Vec<(usize, Color)>) {
     let (container, contained) = s.split_once("contain").unwrap();
     let container_color = parse_bag_str(container).unwrap().1;
     let contained = contained
@@ -121,6 +133,14 @@ vibrant plum bags contain 5 faded blue bags, 6 dotted black bags.
 faded blue bags contain no other bags.
 dotted black bags contain no other bags.";
 
+    static TEST_INPUT_2: &str = r"shiny gold bags contain 2 dark red bags.
+dark red bags contain 2 dark orange bags.
+dark orange bags contain 2 dark yellow bags.
+dark yellow bags contain 2 dark green bags.
+dark green bags contain 2 dark blue bags.
+dark blue bags contain 2 dark violet bags.
+dark violet bags contain no other bags.";
+
     #[test]
     fn test_graph_size() {
         let graph = TEST_INPUT.parse::<RulesGraph>().unwrap();
@@ -135,17 +155,24 @@ dotted black bags contain no other bags.";
     }
 
     #[test]
+    fn test_bags_contained_count() {
+        let graph = TEST_INPUT_2.parse::<RulesGraph>().unwrap();
+        println!("{:?}", graph);
+        assert_eq!(126, graph.bags_inside(&Color::new("shiny gold")));
+    }
+
+    #[test]
     fn test_parse_bag_str() {
         assert_eq!(
-            Some((BagQuantity(0), Color("light red".to_string()))),
+            Some((0, Color("light red".to_string()))),
             parse_bag_str("light red bags")
         );
         assert_eq!(
-            Some((BagQuantity(1), Color("bright white".to_string()))),
+            Some((1, Color("bright white".to_string()))),
             parse_bag_str("1 bright white bag")
         );
         assert_eq!(
-            Some((BagQuantity(2), Color("muted yellow".to_string()))),
+            Some((2, Color("muted yellow".to_string()))),
             parse_bag_str("2 muted yellow bags")
         );
         assert_eq!(None, parse_bag_str("no other bags"));
@@ -157,8 +184,8 @@ dotted black bags contain no other bags.";
             (
                 Color("light red".to_string()),
                 vec![
-                    (BagQuantity(1), Color("bright white".to_string())),
-                    (BagQuantity(2), Color("muted yellow".to_string()))
+                    (1, Color("bright white".to_string())),
+                    (2, Color("muted yellow".to_string()))
                 ]
             ),
             parse_bag_rule("light red bags contain 1 bright white bag, 2 muted yellow bags."),
