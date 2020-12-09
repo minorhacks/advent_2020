@@ -8,6 +8,7 @@ pub mod game_console;
 pub mod luggage;
 pub mod password;
 pub mod toboggan;
+pub mod xmas;
 
 extern crate regex;
 #[macro_use]
