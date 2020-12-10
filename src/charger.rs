@@ -61,6 +61,7 @@ pub fn valid_combinations_count(charger_list: &[i32]) -> i64 {
 }
 
 // for posterity
+#[allow(dead_code)]
 fn valid_combinations_count_naive(charger_list: &[i32]) -> usize {
     let mut charger_list = Vec::from(charger_list);
     charger_list.sort();
