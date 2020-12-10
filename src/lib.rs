@@ -1,4 +1,5 @@
 pub mod airplane;
+pub mod charger;
 pub mod credentials;
 pub mod customs;
 pub mod expense;
