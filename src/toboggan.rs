@@ -1,6 +1,11 @@
-use std::io::Error;
-use std::io::ErrorKind;
 use std::result::Result;
+use thiserror::Error as ThisError;
+
+#[derive(ThisError, Debug)]
+pub enum Error {
+    #[error("unrecognized character in map: {0}")]
+    IllegalMapCharacter(char),
+}
 
 pub enum Space {
     Open,
@@ -22,10 +27,7 @@ impl std::str::FromStr for Map {
                     .map(|c| match c {
                         '.' => Ok(Space::Open),
                         '#' => Ok(Space::Tree),
-                        _ => Err(Error::new(
-                            ErrorKind::InvalidInput,
-                            format!("unrecognized character in map: {}", c),
-                        )),
+                        _ => Err(Error::IllegalMapCharacter(c)),
                     })
                     .collect()
             })
