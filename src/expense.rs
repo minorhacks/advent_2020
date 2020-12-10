@@ -1,21 +1,21 @@
 use std::collections::BTreeSet;
 use std::collections::HashSet;
-use thiserror::Error;
-
-type Result<T> = std::result::Result<T, ExpenseError>;
+use thiserror::Error as ThisError;
 
 pub struct Report {
     items: BTreeSet<i32>,
 }
 
-#[derive(Error, Debug)]
-pub enum ExpenseError {
+#[derive(ThisError, Debug)]
+pub enum Error {
     #[error("pair with sum {0} not found")]
     PairNotFound(i32),
 
     #[error("triple with sum {0} not found")]
     TripleNotFound(i32),
 }
+
+type Result<T> = std::result::Result<T, Error>;
 
 impl Report {
     pub fn new(items: &[i32]) -> Report {
@@ -27,7 +27,7 @@ impl Report {
         self.items
             .iter()
             .find(|&&item| self.items.contains(&(sum - item)))
-            .ok_or(ExpenseError::PairNotFound(sum))
+            .ok_or(Error::PairNotFound(sum))
             .map(|&item| [item, sum - item].iter().cloned().collect())
     }
 
@@ -35,7 +35,7 @@ impl Report {
         self.items
             .iter()
             .find(|&&item| self.pair_with_sum(sum - item).is_ok())
-            .ok_or(ExpenseError::TripleNotFound(sum))
+            .ok_or(Error::TripleNotFound(sum))
             .map(|&item| {
                 let mut pair = self.pair_with_sum(sum - item).unwrap();
                 pair.insert(item);
