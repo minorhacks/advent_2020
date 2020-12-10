@@ -1,6 +1,16 @@
 use std::collections::HashMap;
+use thiserror::Error as ThisError;
 
-type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
+#[derive(ThisError, Debug)]
+pub enum Error {
+    #[error("failed to parse Policy")]
+    PolicyParseError {
+        #[from]
+        source: scan_fmt::parse::ScanError,
+    },
+}
+
+type Result<T> = std::result::Result<T, Error>;
 
 pub struct Policy {
     required_char: char,
@@ -9,7 +19,7 @@ pub struct Policy {
 }
 
 impl std::str::FromStr for Policy {
-    type Err = scan_fmt::parse::ScanError;
+    type Err = Error;
 
     fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
         let (num_1, num_2, c) = scan_fmt!(s, "{}-{} {}", usize, usize, char)?;
