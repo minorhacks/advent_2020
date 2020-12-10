@@ -2,8 +2,27 @@ use regex::Regex;
 use std::collections::HashMap;
 use std::collections::HashSet;
 use std::convert::TryFrom;
-use std::io::Error;
-use std::io::ErrorKind;
+//use std::io::Error;
+//use std::io::ErrorKind;
+use thiserror::Error as ThisError;
+
+#[derive(ThisError, Debug)]
+pub enum Error {
+    #[error("field '{0}' out of allowable range")]
+    OutOfRange(&'static str),
+
+    #[error("missing field: {0}")]
+    MissingField(&'static str),
+
+    #[error("field '{field}' with value '{input}' does not have expected format")]
+    InvalidFormat { field: &'static str, input: String },
+
+    #[error("number parse error")]
+    IntParseError {
+        #[from]
+        source: std::num::ParseIntError,
+    },
+}
 
 struct BirthYear(i32);
 struct IssueYear(i32);
@@ -36,55 +55,46 @@ pub struct Passport {
 }
 
 impl std::str::FromStr for BirthYear {
-    type Err = Box<dyn std::error::Error>;
+    type Err = Error;
 
     fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
         let byr = s.parse::<i32>()?;
         if byr >= 1920 && byr <= 2002 {
             Ok(BirthYear(byr))
         } else {
-            Err(Box::new(Error::new(
-                ErrorKind::InvalidInput,
-                "byr out of range",
-            )))
+            Err(Error::OutOfRange("byr"))
         }
     }
 }
 
 impl std::str::FromStr for IssueYear {
-    type Err = Box<dyn std::error::Error>;
+    type Err = Error;
 
     fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
         let iyr = s.parse::<i32>()?;
         if iyr >= 2010 && iyr <= 2020 {
             Ok(IssueYear(iyr))
         } else {
-            Err(Box::new(Error::new(
-                ErrorKind::InvalidInput,
-                "iyr out of range",
-            )))
+            Err(Error::OutOfRange("iyr"))
         }
     }
 }
 
 impl std::str::FromStr for ExpirationYear {
-    type Err = Box<dyn std::error::Error>;
+    type Err = Error;
 
     fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
         let eyr = s.parse::<i32>()?;
         if eyr >= 2020 && eyr <= 2030 {
             Ok(ExpirationYear(eyr))
         } else {
-            Err(Box::new(Error::new(
-                ErrorKind::InvalidInput,
-                "eyr out of range",
-            )))
+            Err(Error::OutOfRange("eyr"))
         }
     }
 }
 
 impl std::str::FromStr for Height {
-    type Err = Box<dyn std::error::Error>;
+    type Err = Error;
 
     fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
         match Regex::new(r"^(\d+)in$").unwrap().captures(s) {
@@ -93,10 +103,7 @@ impl std::str::FromStr for Height {
                 if val >= 59 && val <= 76 {
                     Ok(Height(Length::Inches(val)))
                 } else {
-                    Err(Box::new(Error::new(
-                        ErrorKind::InvalidInput,
-                        "hgt out of range",
-                    )))
+                    Err(Error::OutOfRange("hgt"))
                 }
             }
             None => match Regex::new(r"^(\d+)cm$").unwrap().captures(s) {
@@ -105,57 +112,60 @@ impl std::str::FromStr for Height {
                     if val >= 150 && val <= 193 {
                         Ok(Height(Length::Centimeters(val)))
                     } else {
-                        Err(Box::new(Error::new(
-                            ErrorKind::InvalidInput,
-                            "hgt out of range",
-                        )))
+                        Err(Error::OutOfRange("hgt"))
                     }
                 }
-                None => Err(Box::new(Error::new(ErrorKind::InvalidInput, "invalid hgt"))),
+                None => Err(Error::InvalidFormat {
+                    field: "hgt",
+                    input: s.to_string(),
+                }),
             },
         }
     }
 }
 
 impl std::str::FromStr for HairColor {
-    type Err = Box<dyn std::error::Error>;
+    type Err = Error;
 
     fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
         match Regex::new(r"^#[0-9a-f]{6}$").unwrap().is_match(s) {
             true => Ok(HairColor(s.to_string())),
-            false => Err(Box::new(Error::new(ErrorKind::InvalidInput, "hcl invalid"))),
+            false => Err(Error::InvalidFormat {
+                field: "hcl",
+                input: s.to_string(),
+            }),
         }
     }
 }
 
 impl std::str::FromStr for EyeColor {
-    type Err = Box<dyn std::error::Error>;
+    type Err = Error;
 
     fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
         let valid_eye_colors = vec!["amb", "blu", "brn", "gry", "grn", "hzl", "oth"];
         match valid_eye_colors.contains(&s) {
             true => Ok(EyeColor(s.to_string())),
-            false => Err(Box::new(Error::new(
-                ErrorKind::InvalidInput,
-                "unrecognized ecl",
-            ))),
+            false => Err(Error::OutOfRange("ecl")),
         }
     }
 }
 
 impl std::str::FromStr for PassportId {
-    type Err = Box<dyn std::error::Error>;
+    type Err = Error;
 
     fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
         match Regex::new(r"^\d{9}$").unwrap().is_match(s) {
             true => Ok(PassportId(s.to_string())),
-            false => Err(Box::new(Error::new(ErrorKind::InvalidInput, "pid invalid"))),
+            false => Err(Error::InvalidFormat {
+                field: "pid",
+                input: s.to_string(),
+            }),
         }
     }
 }
 
 impl std::str::FromStr for UnvalidatedPassport {
-    type Err = Box<dyn std::error::Error>;
+    type Err = Error;
 
     fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
         let fields = s
@@ -191,17 +201,45 @@ impl std::fmt::Display for UnvalidatedPassport {
 }
 
 impl TryFrom<UnvalidatedPassport> for Passport {
-    type Error = Box<dyn std::error::Error>;
+    type Error = Error;
 
     fn try_from(val: UnvalidatedPassport) -> std::result::Result<Self, Self::Error> {
         let passport = Passport {
-            byr: val.fields.get("byr").ok_or("no byr field")?.parse()?,
-            iyr: val.fields.get("iyr").ok_or("no iyr field")?.parse()?,
-            eyr: val.fields.get("eyr").ok_or("no eyr field")?.parse()?,
-            hgt: val.fields.get("hgt").ok_or("no hgt field")?.parse()?,
-            hcl: val.fields.get("hcl").ok_or("no eyr field")?.parse()?,
-            ecl: val.fields.get("ecl").ok_or("no ecl field")?.parse()?,
-            pid: val.fields.get("pid").ok_or("no pid field")?.parse()?,
+            byr: val
+                .fields
+                .get("byr")
+                .ok_or(Error::MissingField("byr"))?
+                .parse()?,
+            iyr: val
+                .fields
+                .get("iyr")
+                .ok_or(Error::MissingField("iyr"))?
+                .parse()?,
+            eyr: val
+                .fields
+                .get("eyr")
+                .ok_or(Error::MissingField("eyr"))?
+                .parse()?,
+            hgt: val
+                .fields
+                .get("hgt")
+                .ok_or(Error::MissingField("hgt"))?
+                .parse()?,
+            hcl: val
+                .fields
+                .get("hcl")
+                .ok_or(Error::MissingField("hcl"))?
+                .parse()?,
+            ecl: val
+                .fields
+                .get("ecl")
+                .ok_or(Error::MissingField("ecl"))?
+                .parse()?,
+            pid: val
+                .fields
+                .get("pid")
+                .ok_or(Error::MissingField("pid"))?
+                .parse()?,
             cid: val.fields.get("cid").map(|cid| CountryId(cid.to_string())),
         };
         Ok(passport)
@@ -209,7 +247,7 @@ impl TryFrom<UnvalidatedPassport> for Passport {
 }
 
 impl std::str::FromStr for Passport {
-    type Err = Box<dyn std::error::Error>;
+    type Err = Error;
 
     fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
         let passport: UnvalidatedPassport = s.parse()?;
