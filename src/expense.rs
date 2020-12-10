@@ -1,11 +1,20 @@
 use std::collections::BTreeSet;
 use std::collections::HashSet;
-use std::io::Error;
-use std::io::ErrorKind;
-use std::io::Result;
+use thiserror::Error;
+
+type Result<T> = std::result::Result<T, ExpenseError>;
 
 pub struct Report {
     items: BTreeSet<i32>,
+}
+
+#[derive(Error, Debug)]
+pub enum ExpenseError {
+    #[error("pair with sum {0} not found")]
+    PairNotFound(i32),
+
+    #[error("triple with sum {0} not found")]
+    TripleNotFound(i32),
 }
 
 impl Report {
@@ -15,34 +24,23 @@ impl Report {
     }
 
     pub fn pair_with_sum(&self, sum: i32) -> Result<HashSet<i32>> {
-        match self
-            .items
+        self.items
             .iter()
             .find(|&&item| self.items.contains(&(sum - item)))
-        {
-            Some(&item) => Ok([item, sum - item].iter().cloned().collect()),
-            None => Err(Error::new(
-                ErrorKind::NotFound,
-                format!("pair with sum {} not found", sum),
-            )),
-        }
+            .ok_or(ExpenseError::PairNotFound(sum))
+            .map(|&item| [item, sum - item].iter().cloned().collect())
     }
 
-    pub fn triple_with_sum(self, sum: i32) -> Result<HashSet<i32>> {
-        let mut found_item = 0;
-        match self.items.iter().find_map(|&item| {
-            found_item = item;
-            self.pair_with_sum(sum - item).ok()
-        }) {
-            Some(mut pair) => {
-                pair.insert(found_item);
-                Ok(pair)
-            }
-            None => Err(Error::new(
-                ErrorKind::NotFound,
-                format!("triple with sum {} not found", sum),
-            )),
-        }
+    pub fn triple_with_sum(&self, sum: i32) -> Result<HashSet<i32>> {
+        self.items
+            .iter()
+            .find(|&&item| self.pair_with_sum(sum - item).is_ok())
+            .ok_or(ExpenseError::TripleNotFound(sum))
+            .map(|&item| {
+                let mut pair = self.pair_with_sum(sum - item).unwrap();
+                pair.insert(item);
+                pair
+            })
     }
 }
 
