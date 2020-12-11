@@ -1,9 +1,13 @@
 use std::collections::HashSet;
+use thiserror::Error as ThisError;
+
+#[derive(Debug, ThisError)]
+pub enum Error {}
 
 pub struct FormResponses(Vec<HashSet<char>>);
 
 impl std::str::FromStr for FormResponses {
-    type Err = Box<dyn std::error::Error>;
+    type Err = Error;
 
     fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
         let answer_set = s
