@@ -1,5 +1,17 @@
 use std::collections::HashMap;
 use std::collections::HashSet;
+use thiserror::Error as ThisError;
+
+#[derive(Debug, ThisError, Eq, PartialEq)]
+pub enum Error {
+    #[error("color {0} not found")]
+    ColorNotFoundError(String),
+
+    #[error("color string is empty")]
+    EmptyColorError,
+}
+
+type Result<T> = std::result::Result<T, Error>;
 
 fn split_once<'a>(s: &'a str, delimiter: &'a str) -> Option<(&'a str, &'a str)> {
     let pieces = s.splitn(2, delimiter).collect::<Vec<_>>();
@@ -28,10 +40,13 @@ struct RulesGraphNode {
 }
 
 impl RulesGraph {
-    pub fn bags_containing(&self, color: &Color) -> HashSet<Color> {
+    pub fn bags_containing(&self, color: &Color) -> Result<HashSet<Color>> {
         let mut colors = HashSet::new();
         let mut node_queue = std::collections::VecDeque::new();
-        let node = self.0.get(&color).unwrap();
+        let node = self
+            .0
+            .get(&color)
+            .ok_or(Error::ColorNotFoundError(color.0.clone()))?;
         node_queue.push_back(node);
         while !node_queue.is_empty() {
             let node = node_queue.pop_front().unwrap();
@@ -41,18 +56,17 @@ impl RulesGraph {
                 }
             }
         }
-        colors
+        Ok(colors)
     }
 
-    pub fn bags_inside(&self, color: &Color) -> usize {
-        self.0
-            .get(color)
-            .unwrap()
-            .holds
-            .iter()
-            .fold(0, |acc, (quantity, color)| {
-                acc + quantity + quantity * self.bags_inside(color)
-            })
+    pub fn bags_inside(&self, color: &Color) -> Result<usize> {
+        let num = self.0.get(color).unwrap().holds.iter().fold(
+            Ok(0),
+            |acc: Result<usize>, (quantity, color)| {
+                Ok(acc? + quantity + quantity * self.bags_inside(color)?)
+            },
+        );
+        num
     }
 
     fn insert(&mut self, c: Color, contains: Vec<(usize, Color)>) {
@@ -74,7 +88,7 @@ impl RulesGraph {
 }
 
 impl std::str::FromStr for RulesGraph {
-    type Err = Box<dyn std::error::Error>;
+    type Err = Error;
 
     fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
         let mut rules_graph = RulesGraph(HashMap::new());
@@ -82,17 +96,20 @@ impl std::str::FromStr for RulesGraph {
             .trim()
             .lines()
             .map(|line| parse_bag_rule(line))
-            .map(|pair| rules_graph.insert(pair.0, pair.1))
-            .collect::<Vec<_>>();
+            .map(|pair| {
+                let pair = pair?;
+                Ok(rules_graph.insert(pair.0, pair.1))
+            })
+            .collect::<Result<Vec<_>>>()?;
         Ok(rules_graph)
     }
 }
 
-fn parse_bag_str(mut s: &str) -> Option<(usize, Color)> {
+fn parse_bag_str(mut s: &str) -> Result<Option<(usize, Color)>> {
     match s.trim() {
-        "no other bags" => None,
+        "no other bags" => Ok(None),
         _ => {
-            let quantity = match s.trim().chars().nth(0).unwrap() {
+            let quantity = match s.trim().chars().nth(0).ok_or(Error::EmptyColorError)? {
                 '0'..='9' => {
                     let (quantity_str, color_str) = split_once(s.trim(), " ").unwrap();
                     s = color_str;
@@ -110,20 +127,23 @@ fn parse_bag_str(mut s: &str) -> Option<(usize, Color)> {
                     .trim()
                     .to_string(),
             );
-            Some((quantity, color))
+            Ok(Some((quantity, color)))
         }
     }
 }
 
-fn parse_bag_rule(s: &str) -> (Color, Vec<(usize, Color)>) {
+fn parse_bag_rule(s: &str) -> Result<(Color, Vec<(usize, Color)>)> {
     let (container, contained) = split_once(s, "contain").unwrap();
-    let container_color = parse_bag_str(container).unwrap().1;
+    let container_color = parse_bag_str(container)?.unwrap().1;
     let contained = contained
         .trim_end_matches('.')
         .split(",")
-        .filter_map(|s| parse_bag_str(s))
+        .map(|s| parse_bag_str(s))
+        .collect::<Result<Vec<_>>>()?
+        .into_iter()
+        .filter_map(|i| i)
         .collect::<Vec<_>>();
-    (container_color, contained)
+    Ok((container_color, contained))
 }
 
 #[cfg(test)]
@@ -157,7 +177,9 @@ dark violet bags contain no other bags.";
     #[test]
     fn test_bags_can_contain_indirect() {
         let graph = TEST_INPUT.parse::<RulesGraph>().unwrap();
-        let bags_containing_shiny_gold = graph.bags_containing(&Color("shiny gold".to_string()));
+        let bags_containing_shiny_gold = graph
+            .bags_containing(&Color("shiny gold".to_string()))
+            .unwrap();
         assert_eq!(4, bags_containing_shiny_gold.len());
     }
 
@@ -165,36 +187,36 @@ dark violet bags contain no other bags.";
     fn test_bags_contained_count() {
         let graph = TEST_INPUT_2.parse::<RulesGraph>().unwrap();
         println!("{:?}", graph);
-        assert_eq!(126, graph.bags_inside(&Color::new("shiny gold")));
+        assert_eq!(126, graph.bags_inside(&Color::new("shiny gold")).unwrap());
     }
 
     #[test]
     fn test_parse_bag_str() {
         assert_eq!(
             Some((0, Color("light red".to_string()))),
-            parse_bag_str("light red bags")
+            parse_bag_str("light red bags").unwrap()
         );
         assert_eq!(
             Some((1, Color("bright white".to_string()))),
-            parse_bag_str("1 bright white bag")
+            parse_bag_str("1 bright white bag").unwrap()
         );
         assert_eq!(
             Some((2, Color("muted yellow".to_string()))),
-            parse_bag_str("2 muted yellow bags")
+            parse_bag_str("2 muted yellow bags").unwrap()
         );
-        assert_eq!(None, parse_bag_str("no other bags"));
+        assert_eq!(None, parse_bag_str("no other bags").unwrap());
     }
 
     #[test]
     fn test_parse_bag_rule() {
         assert_eq!(
-            (
+            Ok((
                 Color("light red".to_string()),
                 vec![
                     (1, Color("bright white".to_string())),
                     (2, Color("muted yellow".to_string()))
                 ]
-            ),
+            )),
             parse_bag_rule("light red bags contain 1 bright white bag, 2 muted yellow bags."),
         )
     }
