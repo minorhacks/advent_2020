@@ -1,49 +1,51 @@
-use std::io::Error;
-use std::io::ErrorKind;
+use thiserror::Error as ThisError;
+
+#[derive(Debug, ThisError)]
+pub enum Error {
+    #[error("seat string is length {0}; want length 10")]
+    SeatLengthError(usize),
+
+    #[error("unexpected char {0} in seat string")]
+    SeatCharError(char),
+
+    #[error("error while parsing seat")]
+    SeatParseError {
+        #[from]
+        source: std::num::ParseIntError,
+    },
+}
+
+type Result<T> = std::result::Result<T, Error>;
+
 pub struct Seat {
-    row: i32,
-    seat: i32,
+    id: i32,
 }
 
 impl Seat {
     pub fn id(&self) -> i32 {
-        self.row * 8 + self.seat
+        self.id
     }
 }
 
 impl std::str::FromStr for Seat {
-    type Err = Box<dyn std::error::Error>;
+    type Err = Error;
 
     fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
         if s.len() != 10 {
-            return Err(Box::new(Error::new(
-                ErrorKind::InvalidInput,
-                "boarding pass seat is wrong length",
-            )));
+            return Err(Error::SeatLengthError(s.len()));
         }
 
-        let (row_str, seat_str) = (&s[0..7], &s[7..10]);
         Ok(Seat {
-            row: i32::from_str_radix(
-                &row_str
-                    .chars()
+            id: i32::from_str_radix(
+                &s.chars()
                     .map(|c| match c {
-                        'F' => '0',
-                        'B' => '1',
-                        _ => panic!(format!("unrecognized char: {}", c)),
+                        'F' => Ok('0'),
+                        'B' => Ok('1'),
+                        'L' => Ok('0'),
+                        'R' => Ok('1'),
+                        _ => Err(Error::SeatCharError(c)),
                     })
-                    .collect::<String>(),
-                2,
-            )?,
-            seat: i32::from_str_radix(
-                &seat_str
-                    .chars()
-                    .map(|c| match c {
-                        'L' => '0',
-                        'R' => '1',
-                        _ => panic!(format!("unrecognized char: {}", c)),
-                    })
-                    .collect::<String>(),
+                    .collect::<Result<String>>()?,
                 2,
             )?,
         })
