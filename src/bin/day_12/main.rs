@@ -6,4 +6,8 @@ fn main() {
     let mut ferry = ferry::Ferry::new();
     ferry.mov(&instructions);
     println!("Part 1: {}", ferry.distance_from_origin());
+
+    let mut ferry = ferry::FerryAndWaypoint::new();
+    ferry.mov(&instructions);
+    println!("Part 2: {}", ferry.distance_from_origin());
 }

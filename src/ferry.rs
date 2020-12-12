@@ -1,4 +1,5 @@
 use itertools::Itertools;
+use ndarray::{arr1, arr2, Array1};
 use std::convert::TryFrom;
 use thiserror::Error as ThisError;
 
@@ -205,6 +206,11 @@ pub struct Ferry {
     orientation: i32,
 }
 
+pub struct FerryAndWaypoint {
+    ferry_position: (i32, i32),
+    waypoint_position: ndarray::Array1<i32>,
+}
+
 impl std::str::FromStr for Instruction {
     type Err = Error;
 
@@ -297,6 +303,64 @@ impl Ferry {
     }
 }
 
+impl FerryAndWaypoint {
+    pub fn new() -> FerryAndWaypoint {
+        FerryAndWaypoint {
+            ferry_position: (0, 0),
+            waypoint_position: arr1(&[10, 1]),
+        }
+    }
+
+    pub fn mov(&mut self, instructions: &Instructions) {
+        let _ = instructions
+            .0
+            .iter()
+            .map(|i| self.step(i))
+            .collect::<Vec<_>>();
+    }
+
+    fn step(&mut self, i: &Instruction) {
+        let right_rotations = [
+            arr2(&[[0, 1], [1, 0]]),
+            arr2(&[[0, -1], [1, 0]]),
+            arr2(&[[-1, 0], [0, -1]]),
+            arr2(&[[0, 1], [-1, 0]]),
+        ];
+        let left_rotations = [
+            arr2(&[[0, 1], [1, 0]]),
+            arr2(&[[0, 1], [-1, 0]]),
+            arr2(&[[-1, 0], [0, -1]]),
+            arr2(&[[0, -1], [1, 0]]),
+        ];
+        match i {
+            Instruction::North(num) => self.waypoint_position[1] += num,
+            Instruction::South(num) => self.waypoint_position[1] -= num,
+            Instruction::East(num) => self.waypoint_position[0] += num,
+            Instruction::West(num) => self.waypoint_position[0] -= num,
+            Instruction::Forward(num) => {
+                self.ferry_position = (
+                    self.ferry_position.0 + self.waypoint_position[0] * num,
+                    self.ferry_position.1 + self.waypoint_position[1] * num,
+                )
+            }
+            Instruction::Left(num) => {
+                self.waypoint_position = self
+                    .waypoint_position
+                    .dot(&left_rotations[(num / 90).rem_euclid(4) as usize])
+            }
+            Instruction::Right(num) => {
+                self.waypoint_position = self
+                    .waypoint_position
+                    .dot(&right_rotations[(num / 90).rem_euclid(4) as usize])
+            }
+        }
+    }
+
+    pub fn distance_from_origin(&self) -> i32 {
+        self.ferry_position.0.abs() + self.ferry_position.1.abs()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -338,5 +402,12 @@ F11";
         let mut ferry = Ferry::new();
         ferry.mov(&instructions);
         assert_eq!(25, ferry.distance_from_origin());
+    }
+    #[test]
+    fn test_ferry_waypoint_move() {
+        let instructions = INSTRUCTIONS_INPUT.parse::<Instructions>().unwrap();
+        let mut ferry = FerryAndWaypoint::new();
+        ferry.mov(&instructions);
+        assert_eq!(286, ferry.distance_from_origin());
     }
 }
