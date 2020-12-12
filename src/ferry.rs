@@ -9,6 +9,15 @@ pub enum Error {
 
     #[error("seat not found")]
     SeatNotFoundError,
+
+    #[error("failed to parse instruction")]
+    InstructionFormatError {
+        #[from]
+        source: std::num::ParseIntError,
+    },
+
+    #[error("malformed instruction: '{0}'")]
+    InstructionParseError(String),
 }
 
 type Result<T> = std::result::Result<T, Error>;
@@ -179,11 +188,120 @@ fn usize_add(u: usize, i: i32) -> usize {
     }
 }
 
+enum Instruction {
+    North(i32),
+    South(i32),
+    East(i32),
+    West(i32),
+    Left(i32),
+    Right(i32),
+    Forward(i32),
+}
+
+pub struct Instructions(Vec<Instruction>);
+
+pub struct Ferry {
+    position: (i32, i32),
+    orientation: i32,
+}
+
+impl std::str::FromStr for Instruction {
+    type Err = Error;
+
+    fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
+        match (
+            s.chars()
+                .nth(0)
+                .ok_or(Error::InstructionParseError(s.to_string()))?,
+            s[1..].parse::<i32>()?,
+        ) {
+            ('N', num) => Ok(Instruction::North(num)),
+            ('S', num) => Ok(Instruction::South(num)),
+            ('E', num) => Ok(Instruction::East(num)),
+            ('W', num) => Ok(Instruction::West(num)),
+            ('L', num) => Ok(Instruction::Left(num)),
+            ('R', num) => Ok(Instruction::Right(num)),
+            ('F', num) => Ok(Instruction::Forward(num)),
+            _ => Err(Error::InstructionParseError(s.to_string())),
+        }
+    }
+}
+
+impl std::fmt::Display for Instruction {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Instruction::North(num) => write!(f, "North {}", num),
+            Instruction::South(num) => write!(f, "South {}", num),
+            Instruction::East(num) => write!(f, "East {}", num),
+            Instruction::West(num) => write!(f, "West {}", num),
+            Instruction::Forward(num) => write!(f, "Forward {}", num),
+            Instruction::Left(num) => write!(f, "Left {}", num),
+            Instruction::Right(num) => write!(f, "Right {}", num),
+        }?;
+        Ok(())
+    }
+}
+
+impl std::str::FromStr for Instructions {
+    type Err = Error;
+
+    fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
+        let instructions = s
+            .trim()
+            .lines()
+            .map(|line| line.parse::<Instruction>())
+            .collect::<Result<Vec<_>>>()?;
+        Ok(Instructions(instructions))
+    }
+}
+
+impl Ferry {
+    pub fn new() -> Ferry {
+        Ferry {
+            orientation: 0,
+            position: (0, 0),
+        }
+    }
+    pub fn mov(&mut self, instructions: &Instructions) {
+        let _ = instructions
+            .0
+            .iter()
+            .map(|i| self.step(i))
+            .collect::<Vec<_>>();
+    }
+
+    fn step(&mut self, i: &Instruction) {
+        match i {
+            Instruction::North(num) => self.position.1 += num,
+            Instruction::South(num) => self.position.1 -= num,
+            Instruction::East(num) => self.position.0 += num,
+            Instruction::West(num) => self.position.0 -= num,
+            Instruction::Forward(num) => {
+                self.position = (
+                    self.position.0 + self.orientation_vector().0 * num,
+                    self.position.1 + self.orientation_vector().1 * num,
+                )
+            }
+            Instruction::Left(num) => self.orientation = (self.orientation - num).rem_euclid(360),
+            Instruction::Right(num) => self.orientation = (self.orientation + num).rem_euclid(360),
+        }
+    }
+
+    pub fn distance_from_origin(&self) -> i32 {
+        self.position.0.abs() + self.position.1.abs()
+    }
+
+    fn orientation_vector(&self) -> (i32, i32) {
+        static ORIENTATION_VEC: &[(i32, i32)] = &[(1, 0), (0, -1), (-1, 0), (0, 1)];
+        ORIENTATION_VEC[((self.orientation / 90).rem_euclid(4)) as usize]
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    static TEST_INPUT: &str = r"L.LL.LL.LL
+    static SEAT_INPUT: &str = r"L.LL.LL.LL
 LLLLLLL.LL
 L.L.L..L..
 LLLL.LL.LL
@@ -194,17 +312,31 @@ LLLLLLLLLL
 L.LLLLLL.L
 L.LLLLL.LL";
 
+    static INSTRUCTIONS_INPUT: &str = r"F10
+N3
+F7
+R90
+F11";
+
     #[test]
     fn test_stabilize() {
-        let waiting_area = TEST_INPUT.parse::<WaitingArea>().unwrap();
+        let waiting_area = SEAT_INPUT.parse::<WaitingArea>().unwrap();
         let waiting_area = waiting_area.stabilize_adjacent();
         assert_eq!(37, waiting_area.num_occupied());
     }
 
     #[test]
     fn test_first_visible() {
-        let waiting_area = TEST_INPUT.parse::<WaitingArea>().unwrap();
+        let waiting_area = SEAT_INPUT.parse::<WaitingArea>().unwrap();
         let waiting_area = waiting_area.stabilize_first_visible();
         assert_eq!(26, waiting_area.num_occupied());
+    }
+
+    #[test]
+    fn test_ferry_move() {
+        let instructions = INSTRUCTIONS_INPUT.parse::<Instructions>().unwrap();
+        let mut ferry = Ferry::new();
+        ferry.mov(&instructions);
+        assert_eq!(25, ferry.distance_from_origin());
     }
 }
