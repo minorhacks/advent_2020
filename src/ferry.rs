@@ -6,11 +6,14 @@ use thiserror::Error as ThisError;
 pub enum Error {
     #[error("failed to parse seat '{0}'")]
     SeatParseError(String),
+
+    #[error("seat not found")]
+    SeatNotFoundError,
 }
 
 type Result<T> = std::result::Result<T, Error>;
 
-#[derive(Clone, Eq, PartialEq)]
+#[derive(Clone, Eq, PartialEq, Debug)]
 enum Seat {
     Floor,
     Empty,
@@ -60,12 +63,22 @@ impl std::str::FromStr for WaitingArea {
 }
 
 impl WaitingArea {
-    pub fn stabilize(&self) -> WaitingArea {
+    pub fn stabilize_adjacent(&self) -> WaitingArea {
         let mut old = self.clone();
-        let mut new = old.step();
+        let mut new = old.step_adjacent();
         while old != new {
             old = new;
-            new = old.step();
+            new = old.step_adjacent();
+        }
+        new
+    }
+
+    pub fn stabilize_first_visible(&self) -> WaitingArea {
+        let mut old = self.clone();
+        let mut new = old.step_first_visible();
+        while old != new {
+            old = new;
+            new = old.step_first_visible();
         }
         new
     }
@@ -84,7 +97,7 @@ impl WaitingArea {
             .sum()
     }
 
-    fn step(&self) -> WaitingArea {
+    fn step_adjacent(&self) -> WaitingArea {
         let mut new = self.clone();
         let _ = (0..self.seats.len())
             .map(|row| {
@@ -94,16 +107,12 @@ impl WaitingArea {
                             .cartesian_product(-1..=1 as i32)
                             .filter(|&coord| coord != (0, 0))
                             .map(|(delta_row, delta_col)| {
-                                self.get_seat(
-                                    usize::try_from(i32::try_from(row).unwrap() + delta_row)
-                                        .unwrap_or(usize::MAX),
-                                    usize::try_from(i32::try_from(col).unwrap() + delta_col)
-                                        .unwrap_or(usize::MAX),
-                                )
-                            });
+                                self.get_seat(usize_add(row, delta_row), usize_add(col, delta_col))
+                            })
+                            .filter_map(Result::ok);
                         let num_occupied =
                             surrounding_seats.filter(|&s| s == &Seat::Occupied).count();
-                        let new_seat = match self.get_seat(row, col) {
+                        let new_seat = match self.get_seat(row, col).unwrap() {
                             Seat::Floor => Seat::Floor,
                             Seat::Occupied if num_occupied >= 4 => Seat::Empty,
                             Seat::Empty if num_occupied == 0 => Seat::Occupied,
@@ -117,16 +126,56 @@ impl WaitingArea {
         new
     }
 
-    fn get_seat(&self, row: usize, col: usize) -> &Seat {
+    fn step_first_visible(&self) -> WaitingArea {
+        let mut new = self.clone();
+        let directions = (-1..=1)
+            .cartesian_product(-1..=1)
+            .filter(|&coord| coord != (0, 0))
+            .collect::<Vec<_>>();
+        for row in 0..self.seats.len() {
+            for col in 0..self.seats[row].len() {
+                let mut seats = Vec::new();
+                for dir in &directions {
+                    let mut coords = (usize_add(row, dir.0), usize_add(col, dir.1));
+                    let mut next = self.get_seat(coords.0, coords.1);
+                    while next.is_ok() && next.as_ref().unwrap() == &&Seat::Floor {
+                        coords = (usize_add(coords.0, dir.0), usize_add(coords.1, dir.1));
+                        next = self.get_seat(coords.0, coords.1);
+                    }
+                    if next.is_ok() {
+                        seats.push(next.unwrap());
+                    }
+                }
+                let num_occupied = seats.iter().filter(|&&s| s == &Seat::Occupied).count();
+                let new_seat = match self.get_seat(row, col).unwrap() {
+                    Seat::Floor => Seat::Floor,
+                    Seat::Occupied if num_occupied >= 5 => Seat::Empty,
+                    Seat::Empty if num_occupied == 0 => Seat::Occupied,
+                    old_seat => old_seat.clone(),
+                };
+                new.set_seat(row, col, new_seat);
+            }
+        }
+        new
+    }
+
+    fn get_seat(&self, row: usize, col: usize) -> Result<&Seat> {
         self.seats
             .get(row)
             .and_then(|r| r.get(col))
-            .or(Some(&Seat::Floor))
-            .unwrap()
+            .ok_or(Error::SeatNotFoundError)
     }
 
     fn set_seat(&mut self, row: usize, col: usize, seat: Seat) {
         self.seats[row][col] = seat;
+    }
+}
+
+fn usize_add(u: usize, i: i32) -> usize {
+    if i < 0 && (-i as usize) > u {
+        usize::MAX
+    } else {
+        usize::try_from(i32::try_from(u).unwrap() + i as i32).unwrap()
     }
 }
 
@@ -148,7 +197,14 @@ L.LLLLL.LL";
     #[test]
     fn test_stabilize() {
         let waiting_area = TEST_INPUT.parse::<WaitingArea>().unwrap();
-        let waiting_area = waiting_area.stabilize();
+        let waiting_area = waiting_area.stabilize_adjacent();
         assert_eq!(37, waiting_area.num_occupied());
+    }
+
+    #[test]
+    fn test_first_visible() {
+        let waiting_area = TEST_INPUT.parse::<WaitingArea>().unwrap();
+        let waiting_area = waiting_area.stabilize_first_visible();
+        assert_eq!(26, waiting_area.num_occupied());
     }
 }
