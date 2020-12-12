@@ -1,5 +1,5 @@
 use itertools::Itertools;
-use ndarray::{arr1, arr2, Array1};
+use ndarray::{arr1, arr2};
 use std::convert::TryFrom;
 use thiserror::Error as ThisError;
 
