@@ -6,7 +6,30 @@ pub enum Error {
     ShuttleParseError,
 }
 
-pub struct ShuttleList(Vec<i32>);
+enum Shuttle {
+    OutOfService,
+    Id(i32),
+}
+
+type Result<T> = std::result::Result<T, Error>;
+
+pub struct ShuttleList(Vec<Shuttle>);
+
+impl std::str::FromStr for Shuttle {
+    type Err = Error;
+
+    fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
+        if s.trim() == "x" {
+            Ok(Shuttle::OutOfService)
+        } else {
+            Ok(Shuttle::Id(
+                s.trim()
+                    .parse::<i32>()
+                    .map_err(|_| Error::ShuttleParseError)?,
+            ))
+        }
+    }
+}
 
 impl std::str::FromStr for ShuttleList {
     type Err = Error;
@@ -15,10 +38,8 @@ impl std::str::FromStr for ShuttleList {
         let ids = s
             .trim()
             .split(",")
-            .filter(|&s| s != "x")
-            .map(|s| s.parse::<i32>())
-            .collect::<std::result::Result<Vec<_>, _>>()
-            .map_err(|_err| Error::ShuttleParseError)?;
+            .map(|s| s.parse::<Shuttle>())
+            .collect::<Result<Vec<_>>>()?;
         Ok(ShuttleList(ids))
     }
 }
@@ -32,6 +53,10 @@ impl ShuttleList {
         *self
             .0
             .iter()
+            .filter_map(|s| match s {
+                Shuttle::Id(id) => Some(id),
+                Shuttle::OutOfService => None,
+            })
             .min_by_key(|&&id| minutes_to_wait(now, id))
             .unwrap()
     }
