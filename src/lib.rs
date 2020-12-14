@@ -2,6 +2,7 @@ pub mod airplane;
 pub mod charger;
 pub mod credentials;
 pub mod customs;
+pub mod dock;
 pub mod expense;
 pub mod ferry;
 pub mod game_console;
