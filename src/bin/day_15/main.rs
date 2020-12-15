@@ -8,6 +8,9 @@ fn main() {
         .map(|s| s.parse::<usize>())
         .collect::<Result<_, _>>()
         .unwrap();
-    let game = memory::Game::new(nums);
+    let mut game = memory::Game::new(nums.clone());
     println!("Part 1: {}", game.play_until(2020));
+
+    let mut game = memory::Game::new(nums.clone());
+    println!("Part 2: {}", game.play_until(30000000));
 }
