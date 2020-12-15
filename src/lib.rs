@@ -7,6 +7,7 @@ pub mod expense;
 pub mod ferry;
 pub mod game_console;
 pub mod luggage;
+pub mod memory;
 pub mod password;
 pub mod shuttle;
 pub mod toboggan;
