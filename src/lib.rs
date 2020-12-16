@@ -11,6 +11,7 @@ pub mod memory;
 pub mod password;
 pub mod shuttle;
 pub mod toboggan;
+pub mod train;
 pub mod xmas;
 
 extern crate regex;

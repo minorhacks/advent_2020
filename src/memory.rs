@@ -47,6 +47,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg_attr(not(feature = "expensive_tests"), ignore)]
     fn test_play_until_long() {
         let mut game = Game::new(vec![0, 3, 6]);
         assert_eq!(175594, game.play_until(30000000));
