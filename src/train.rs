@@ -80,14 +80,10 @@ impl std::str::FromStr for Rule {
 
 impl Rule {
     fn test(&self, val: i32) -> bool {
-        match self
-            .ranges
+        self.ranges
             .iter()
             .find(|(begin, end)| &val >= begin && &val <= end)
-        {
-            Some(_) => true,
-            None => false,
-        }
+            .is_some()
     }
 }
 
