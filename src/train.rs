@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+use std::collections::HashSet;
 use thiserror::Error as ThisError;
 
 #[derive(Debug, ThisError)]
@@ -13,13 +15,13 @@ pub enum Error {
 }
 
 pub struct Ticket {
-    nums: Vec<i32>,
+    nums: Vec<i64>,
 }
 
 #[derive(Debug)]
 pub struct Rule {
-    field: String,
-    ranges: Vec<(i32, i32)>,
+    pub field: String,
+    ranges: Vec<(i64, i64)>,
 }
 
 impl std::str::FromStr for Ticket {
@@ -29,7 +31,7 @@ impl std::str::FromStr for Ticket {
         let nums = s
             .trim()
             .split(",")
-            .map(|s| s.parse::<i32>())
+            .map(|s| s.parse::<i64>())
             .collect::<std::result::Result<Vec<_>, _>>()
             .map_err(|_| Error::TicketParseError(s.to_string()))?;
         Ok(Ticket { nums })
@@ -41,15 +43,23 @@ impl Ticket {
         self.nums.iter().all(|&v| rules.iter().any(|r| r.test(v)))
     }
 
-    pub fn error_rate(&self, rules: &[Rule]) -> i32 {
+    pub fn error_rate(&self, rules: &[Rule]) -> i64 {
         self.nums
             .iter()
             .filter(|&&v| rules.iter().all(|r| !r.test(v)))
             .sum()
     }
 
-    pub fn sum(&self) -> i32 {
+    pub fn sum(&self) -> i64 {
         self.nums.iter().sum()
+    }
+
+    pub fn get(&self, i: usize) -> i64 {
+        self.nums[i]
+    }
+
+    pub fn num_fields(&self) -> usize {
+        self.nums.len()
     }
 }
 
@@ -69,8 +79,8 @@ impl std::str::FromStr for Rule {
             .map(|range_str| {
                 let mut iter = range_str.split("-");
                 (
-                    iter.next().unwrap().parse::<i32>().unwrap(),
-                    iter.next().unwrap().parse::<i32>().unwrap(),
+                    iter.next().unwrap().parse::<i64>().unwrap(),
+                    iter.next().unwrap().parse::<i64>().unwrap(),
                 )
             })
             .collect::<Vec<_>>();
@@ -79,12 +89,42 @@ impl std::str::FromStr for Rule {
 }
 
 impl Rule {
-    fn test(&self, val: i32) -> bool {
+    fn test(&self, val: i64) -> bool {
         self.ranges
             .iter()
             .find(|(begin, end)| &val >= begin && &val <= end)
             .is_some()
     }
+
+    pub fn possible_fields(&self, tickets: &[Ticket]) -> HashSet<usize> {
+        (0..tickets[0].num_fields())
+            .filter(|&i| tickets.iter().all(|t| self.test(t.get(i))))
+            .collect::<HashSet<_>>()
+    }
+}
+
+pub fn resolve_field_map(mut m: HashMap<String, HashSet<usize>>) -> HashMap<String, usize> {
+    let mut ret = HashMap::new();
+    loop {
+        if m.is_empty() {
+            break;
+        }
+        let (field, set) = match m.iter().find(|(_, v)| v.len() == 1) {
+            Some(pair) => pair,
+            None => return ret,
+        };
+        let &val = set.iter().next().unwrap();
+        ret.insert(field.clone(), val);
+        m = m
+            .into_iter()
+            .map(|(k, v)| {
+                let mut v = v.clone();
+                v.remove(&val);
+                (k, v)
+            })
+            .collect::<HashMap<_, _>>();
+    }
+    ret
 }
 
 #[cfg(test)]
@@ -94,6 +134,10 @@ mod tests {
     static TEST_RULES: &str = &r"class: 1-3 or 5-7
 row: 6-11 or 33-44
 seat: 13-40 or 45-50";
+
+    static TEST_RULES_2: &str = &r"class: 0-1 or 4-19
+row: 0-5 or 8-19
+seat: 0-13 or 16-19";
 
     #[test]
     fn test_ticket_valid() {
@@ -121,5 +165,21 @@ seat: 13-40 or 45-50";
         assert_eq!(4, "40,4,50".parse::<Ticket>().unwrap().error_rate(&rules));
         assert_eq!(55, "55,2,20".parse::<Ticket>().unwrap().error_rate(&rules));
         assert_eq!(12, "38,6,12".parse::<Ticket>().unwrap().error_rate(&rules));
+    }
+
+    #[test]
+    fn test_find_field() {
+        let rules = TEST_RULES_2
+            .trim()
+            .lines()
+            .map(|line| line.parse::<Rule>().unwrap())
+            .collect::<Vec<_>>();
+        let tickets = vec!["3,9,18", "15,1,5", "5,14,9"]
+            .into_iter()
+            .map(|str| str.parse::<Ticket>().unwrap())
+            .collect::<Vec<_>>();
+        assert_eq!(true, rules[1].possible_fields(&tickets).contains(&0));
+        assert_eq!(true, rules[0].possible_fields(&tickets).contains(&1));
+        assert_eq!(true, rules[2].possible_fields(&tickets).contains(&2));
     }
 }
