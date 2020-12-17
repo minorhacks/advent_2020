@@ -3,7 +3,7 @@ image: "rustlang/rust:nightly"
 test:
   script:
     - rustc --version && cargo --version
-    - cargo test --all --release
+    - cargo test --all --release --features expensive_tests
   tags: ["linux"]
 
 variables:

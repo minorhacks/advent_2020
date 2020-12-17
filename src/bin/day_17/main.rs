@@ -7,4 +7,10 @@ fn main() {
         space = space.step();
     }
     println!("Part 1: {}", space.active_count());
+
+    let mut space = cube::Space4::from_initial_slice(&input).unwrap();
+    for _ in 0..6 {
+        space = space.step();
+    }
+    println!("Part 2: {}", space.active_count());
 }
