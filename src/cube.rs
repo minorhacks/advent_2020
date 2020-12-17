@@ -20,19 +20,19 @@ enum State {
 }
 
 #[derive(Hash, PartialEq, Eq, Clone, Debug)]
-pub struct Coord {
+struct Coord3 {
     x: i32,
     y: i32,
     z: i32,
 }
 
 #[derive(Clone, Debug)]
-pub struct Space {
-    states: HashMap<Coord, State>,
+pub struct Space3 {
+    states: HashMap<Coord3, State>,
 }
 
-impl Space {
-    pub fn from_initial_slice(slice_str: &str) -> Result<Space> {
+impl Space3 {
+    pub fn from_initial_slice(slice_str: &str) -> Result<Space3> {
         let x = slice_str
             .trim()
             .lines()
@@ -56,7 +56,7 @@ impl Space {
                     .map(|(j, state)| {
                         match state {
                             State::Active => {
-                                let c = Coord {
+                                let c = Coord3 {
                                     x: i as i32,
                                     y: j as i32,
                                     z: 0,
@@ -69,7 +69,7 @@ impl Space {
                     .collect::<Vec<_>>()
             })
             .collect::<Vec<_>>();
-        let mut s = Space { states: active };
+        let mut s = Space3 { states: active };
         s.pad();
         Ok(s)
     }
@@ -84,7 +84,7 @@ impl Space {
             .sum()
     }
 
-    pub fn neighbors_active_count(&self, coord: &Coord) -> usize {
+    fn neighbors_active_count(&self, coord: &Coord3) -> usize {
         let neighbors = coord.neighbors();
         neighbors
             .into_iter()
@@ -95,7 +95,7 @@ impl Space {
             .sum()
     }
 
-    pub fn step(&self) -> Space {
+    pub fn step(&self) -> Space3 {
         let mut new = self.clone();
         let _ = self
             .states
@@ -127,20 +127,20 @@ impl Space {
     }
 }
 
-impl Coord {
-    fn neighbors(&self) -> Vec<Coord> {
+impl Coord3 {
+    fn neighbors(&self) -> Vec<Coord3> {
         (-1..=1)
             .cartesian_product(-1..=1)
             .cartesian_product(-1..=1)
             .map(|c| (c.0 .0, c.0 .1, c.1))
             .filter(|c| c != &(0, 0, 0))
-            .map(|(x, y, z)| Coord { x, y, z })
+            .map(|(x, y, z)| Coord3 { x, y, z })
             .map(|c| self.add(c))
             .collect::<Vec<_>>()
     }
 
-    fn add(&self, other: Coord) -> Coord {
-        Coord {
+    fn add(&self, other: Coord3) -> Coord3 {
+        Coord3 {
             x: self.x + other.x,
             y: self.y + other.y,
             z: self.z + other.z,
@@ -153,8 +153,8 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_step() {
-        let space = Space::from_initial_slice(".#.\n..#\n###").unwrap();
+    fn test_space3_step() {
+        let space = Space3::from_initial_slice(".#.\n..#\n###").unwrap();
         assert_eq!(5, space.active_count());
         let space = space.step();
         assert_eq!(11, space.active_count());
@@ -170,7 +170,7 @@ mod tests {
 
     #[test]
     fn test_neighbors() {
-        let n = Coord { x: 0, y: 0, z: 0 }.neighbors();
+        let n = Coord3 { x: 0, y: 0, z: 0 }.neighbors();
         assert_eq!(26, n.len());
     }
 }
