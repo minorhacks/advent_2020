@@ -3,6 +3,7 @@ pub mod charger;
 pub mod credentials;
 pub mod customs;
 pub mod dock;
+pub mod cube;
 pub mod expense;
 pub mod ferry;
 pub mod game_console;
