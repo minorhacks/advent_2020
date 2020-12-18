@@ -50,7 +50,7 @@ mod tests {
 
     #[test]
     fn test_pair_with_sum() {
-        let report = Report::new(&vec![1721, 979, 366, 299, 675, 1456]);
+        let report = Report::new(&[1721, 979, 366, 299, 675, 1456]);
         let nums = report.pair_with_sum(2020).unwrap();
         assert_eq!(true, nums.contains(&1721));
         assert_eq!(true, nums.contains(&299));
@@ -58,7 +58,7 @@ mod tests {
 
     #[test]
     fn test_triple_with_sum() {
-        let report = Report::new(&vec![1721, 979, 366, 299, 675, 1456]);
+        let report = Report::new(&[1721, 979, 366, 299, 675, 1456]);
         let nums = report.triple_with_sum(2020).unwrap();
         assert_eq!(true, nums.contains(&979));
         assert_eq!(true, nums.contains(&366));
