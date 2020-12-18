@@ -73,8 +73,10 @@ impl NumBuilder {
     }
 }
 
-impl Expr {
-    pub fn from_str(s: &str) -> Expr {
+impl std::str::FromStr for Expr {
+    type Err = Error;
+
+    fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
         let mut tokens = Vec::new();
         let mut num_builder = NumBuilder::new();
         let mut chars_iter = s.chars();
@@ -82,33 +84,29 @@ impl Expr {
         loop {
             match c {
                 None => {
-                    match num_builder.pop_reset() {
-                        Some(num) => tokens.push(Token::Num(num)),
-                        None => (),
+                    if let Some(num) = num_builder.pop_reset() {
+                        tokens.push(Token::Num(num))
                     };
-                    return Expr { tokens };
+                    return Ok(Expr { tokens });
                 }
                 Some(c) => match c {
                     '(' => tokens.push(Token::OpenParen),
                     ')' => {
-                        match num_builder.pop_reset() {
-                            Some(num) => tokens.push(Token::Num(num)),
-                            None => (),
+                        if let Some(num) = num_builder.pop_reset() {
+                            tokens.push(Token::Num(num))
                         };
                         tokens.push(Token::CloseParen);
                     }
                     '0'..='9' => num_builder.push_digit(c),
                     '+' => {
-                        match num_builder.pop_reset() {
-                            Some(num) => tokens.push(Token::Num(num)),
-                            None => (),
+                        if let Some(num) = num_builder.pop_reset() {
+                            tokens.push(Token::Num(num))
                         };
                         tokens.push(Token::Op(Op::Add));
                     }
                     '*' => {
-                        match num_builder.pop_reset() {
-                            Some(num) => tokens.push(Token::Num(num)),
-                            None => (),
+                        if let Some(num) = num_builder.pop_reset() {
+                            tokens.push(Token::Num(num))
                         };
                         tokens.push(Token::Op(Op::Mul));
                     }
@@ -119,7 +117,9 @@ impl Expr {
             c = chars_iter.next();
         }
     }
+}
 
+impl Expr {
     pub fn result(&self) -> u64 {
         let mut ctx = Context::new();
         let mut stack = VecDeque::new();
@@ -130,11 +130,11 @@ impl Expr {
                     match ctx.op {
                         None => ctx.acc = *n,
                         Some(Op::Add) => {
-                            ctx.acc = ctx.acc + n;
+                            ctx.acc += n;
                             ctx.op = None;
                         }
                         Some(Op::Mul) => {
-                            ctx.acc = ctx.acc * n;
+                            ctx.acc *= n;
                             ctx.op = None;
                         }
                     };
@@ -168,7 +168,7 @@ impl Expr {
                     match ctx.op {
                         None => ctx.acc = *n,
                         Some(Op::Add) => {
-                            ctx.acc = ctx.acc + n;
+                            ctx.acc += n;
                             ctx.op = None;
                         }
                         Some(Op::Mul) => panic!("unexpected mul op"),
@@ -226,7 +226,7 @@ mod tests {
                 Token::Op(Op::Add),
                 Token::Num(6),
             ],
-            Expr::from_str("1 + 2 * 3 + 4 * 5 + 6").tokens
+            "1 + 2 * 3 + 4 * 5 + 6".parse::<Expr>().unwrap().tokens
         );
         assert_eq!(
             vec![
@@ -248,22 +248,40 @@ mod tests {
                 Token::CloseParen,
                 Token::CloseParen,
             ],
-            Expr::from_str("1 + (234 * 345) + (4 * (567 + 6))").tokens
+            "1 + (234 * 345) + (4 * (567 + 6))"
+                .parse::<Expr>()
+                .unwrap()
+                .tokens
         );
     }
 
     #[test]
     fn test_expr_result() {
-        assert_eq!(71, Expr::from_str("1 + 2 * 3 + 4 * 5 + 6").result());
-        assert_eq!(26, Expr::from_str("2 * 3 + (4 * 5)").result());
-        assert_eq!(437, Expr::from_str("5 + (8 * 3 + 9 + 3 * 4 * 3)").result());
+        assert_eq!(
+            71,
+            "1 + 2 * 3 + 4 * 5 + 6".parse::<Expr>().unwrap().result()
+        );
+        assert_eq!(26, "2 * 3 + (4 * 5)".parse::<Expr>().unwrap().result());
+        assert_eq!(
+            437,
+            "5 + (8 * 3 + 9 + 3 * 4 * 3)"
+                .parse::<Expr>()
+                .unwrap()
+                .result()
+        );
         assert_eq!(
             12240,
-            Expr::from_str("5 * 9 * (7 * 3 * 3 + 9 * 3 + (8 + 6 * 4))").result()
+            "5 * 9 * (7 * 3 * 3 + 9 * 3 + (8 + 6 * 4))"
+                .parse::<Expr>()
+                .unwrap()
+                .result()
         );
         assert_eq!(
             13632,
-            Expr::from_str("((2 + 4 * 9) * (6 + 9 * 8 + 6) + 6) + 2 + 4 * 2").result()
+            "((2 + 4 * 9) * (6 + 9 * 8 + 6) + 6) + 2 + 4 * 2"
+                .parse::<Expr>()
+                .unwrap()
+                .result()
         );
     }
 
@@ -271,20 +289,35 @@ mod tests {
     fn test_expr_advanced_result() {
         assert_eq!(
             231,
-            Expr::from_str("1 + 2 * 3 + 4 * 5 + 6").advanced_result()
+            "1 + 2 * 3 + 4 * 5 + 6"
+                .parse::<Expr>()
+                .unwrap()
+                .advanced_result()
         );
-        assert_eq!(46, Expr::from_str("2 * 3 + (4 * 5)").advanced_result());
+        assert_eq!(
+            46,
+            "2 * 3 + (4 * 5)".parse::<Expr>().unwrap().advanced_result()
+        );
         assert_eq!(
             1445,
-            Expr::from_str("5 + (8 * 3 + 9 + 3 * 4 * 3)").advanced_result()
+            "5 + (8 * 3 + 9 + 3 * 4 * 3)"
+                .parse::<Expr>()
+                .unwrap()
+                .advanced_result()
         );
         assert_eq!(
             669060,
-            Expr::from_str("5 * 9 * (7 * 3 * 3 + 9 * 3 + (8 + 6 * 4))").advanced_result()
+            "5 * 9 * (7 * 3 * 3 + 9 * 3 + (8 + 6 * 4))"
+                .parse::<Expr>()
+                .unwrap()
+                .advanced_result()
         );
         assert_eq!(
             23340,
-            Expr::from_str("((2 + 4 * 9) * (6 + 9 * 8 + 6) + 6) + 2 + 4 * 2").advanced_result()
+            "((2 + 4 * 9) * (6 + 9 * 8 + 6) + 6) + 2 + 4 * 2"
+                .parse::<Expr>()
+                .unwrap()
+                .advanced_result()
         );
     }
 }

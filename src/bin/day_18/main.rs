@@ -5,7 +5,7 @@ fn main() {
     let expr_list = input
         .trim()
         .lines()
-        .map(|line| newmath::Expr::from_str(line))
+        .map(|line| line.parse::<newmath::Expr>().unwrap())
         .collect::<Vec<_>>();
 
     let expr_sum: u64 = expr_list.iter().map(|e| e.result()).sum();
