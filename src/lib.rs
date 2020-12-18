@@ -1,14 +1,15 @@
 pub mod airplane;
 pub mod charger;
 pub mod credentials;
+pub mod cube;
 pub mod customs;
 pub mod dock;
-pub mod cube;
 pub mod expense;
 pub mod ferry;
 pub mod game_console;
 pub mod luggage;
 pub mod memory;
+pub mod newmath;
 pub mod password;
 pub mod shuttle;
 pub mod toboggan;
