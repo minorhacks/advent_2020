@@ -46,7 +46,7 @@ impl RulesGraph {
         let node = self
             .0
             .get(&color)
-            .ok_or(Error::ColorNotFoundError(color.0.clone()))?;
+            .ok_or_else(|| Error::ColorNotFoundError(color.0.clone()))?;
         node_queue.push_back(node);
         while !node_queue.is_empty() {
             let node = node_queue.pop_front().unwrap();
@@ -98,7 +98,8 @@ impl std::str::FromStr for RulesGraph {
             .map(|line| parse_bag_rule(line))
             .map(|pair| {
                 let pair = pair?;
-                Ok(rules_graph.insert(pair.0, pair.1))
+                rules_graph.insert(pair.0, pair.1);
+                Ok(())
             })
             .collect::<Result<Vec<_>>>()?;
         Ok(rules_graph)
@@ -109,7 +110,7 @@ fn parse_bag_str(mut s: &str) -> Result<Option<(usize, Color)>> {
     match s.trim() {
         "no other bags" => Ok(None),
         _ => {
-            let quantity = match s.trim().chars().nth(0).ok_or(Error::EmptyColorError)? {
+            let quantity = match s.trim().chars().next().ok_or(Error::EmptyColorError)? {
                 '0'..='9' => {
                     let (quantity_str, color_str) = split_once(s.trim(), " ").unwrap();
                     s = color_str;
@@ -137,7 +138,7 @@ fn parse_bag_rule(s: &str) -> Result<(Color, Vec<(usize, Color)>)> {
     let container_color = parse_bag_str(container)?.unwrap().1;
     let contained = contained
         .trim_end_matches('.')
-        .split(",")
+        .split(',')
         .map(|s| parse_bag_str(s))
         .collect::<Result<Vec<_>>>()?
         .into_iter()
