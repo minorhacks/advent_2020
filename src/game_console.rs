@@ -17,6 +17,7 @@ pub struct Program {
     codes: Vec<OpCode>,
 }
 
+#[derive(Default)]
 pub struct ExecutionContext {
     program_counter: i32,
     accumulator: i32,
@@ -49,10 +50,10 @@ impl Program {
 
 impl OpCode {
     pub fn new(s: &str) -> OpCode {
-        let fields = s.trim().split(" ").collect::<Vec<_>>();
+        let fields = s.trim().split(' ').collect::<Vec<_>>();
         let val = fields[1]
             .parse::<i32>()
-            .expect(&format!("can't parse: {}", fields[1]));
+            .unwrap_or_else(|_| panic!("can't parse: {}", fields[1]));
         match fields[0] {
             "nop" => OpCode::Nop(val),
             "acc" => OpCode::Acc(val),
