@@ -59,7 +59,7 @@ impl std::str::FromStr for BirthYear {
 
     fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
         let byr = s.parse::<i32>()?;
-        if byr >= 1920 && byr <= 2002 {
+        if (1920..=2002).contains(&byr) {
             Ok(BirthYear(byr))
         } else {
             Err(Error::OutOfRange("byr"))
@@ -72,7 +72,7 @@ impl std::str::FromStr for IssueYear {
 
     fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
         let iyr = s.parse::<i32>()?;
-        if iyr >= 2010 && iyr <= 2020 {
+        if (2010..=2020).contains(&iyr) {
             Ok(IssueYear(iyr))
         } else {
             Err(Error::OutOfRange("iyr"))
@@ -85,7 +85,7 @@ impl std::str::FromStr for ExpirationYear {
 
     fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
         let eyr = s.parse::<i32>()?;
-        if eyr >= 2020 && eyr <= 2030 {
+        if (2020..=2030).contains(&eyr) {
             Ok(ExpirationYear(eyr))
         } else {
             Err(Error::OutOfRange("eyr"))
@@ -100,7 +100,7 @@ impl std::str::FromStr for Height {
         match Regex::new(r"^(\d+)in$").unwrap().captures(s) {
             Some(c) => {
                 let val = c.get(1).unwrap().as_str().parse::<i32>()?;
-                if val >= 59 && val <= 76 {
+                if (59..=76).contains(&val) {
                     Ok(Height(Length::Inches(val)))
                 } else {
                     Err(Error::OutOfRange("hgt"))
@@ -109,7 +109,7 @@ impl std::str::FromStr for Height {
             None => match Regex::new(r"^(\d+)cm$").unwrap().captures(s) {
                 Some(c) => {
                     let val = c.get(1).unwrap().as_str().parse::<i32>()?;
-                    if val >= 150 && val <= 193 {
+                    if (150..=193).contains(&val) {
                         Ok(Height(Length::Centimeters(val)))
                     } else {
                         Err(Error::OutOfRange("hgt"))
@@ -172,7 +172,7 @@ impl std::str::FromStr for UnvalidatedPassport {
             .trim()
             .split_whitespace()
             .map(|s| {
-                let field_parts = s.splitn(2, ":").collect::<Vec<_>>();
+                let field_parts = s.splitn(2, ':').collect::<Vec<_>>();
                 (field_parts[0].to_string(), field_parts[1].to_string())
             })
             .collect::<HashMap<_, _>>();
@@ -193,7 +193,7 @@ impl std::fmt::Display for UnvalidatedPassport {
         pairs.sort_by(|a, b| a.0.cmp(b.0));
         let pair_str = pairs
             .iter()
-            .map(|pair| format!("{}:{}", pair.0, pair.1).to_string())
+            .map(|pair| format!("{}:{}", pair.0, pair.1))
             .collect::<Vec<_>>()
             .join(" ");
         write!(f, "{}", pair_str)

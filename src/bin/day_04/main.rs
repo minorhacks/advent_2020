@@ -26,7 +26,7 @@ fn main() {
 
     let valid_passports = passports
         .into_iter()
-        .map(|unvalidated| credentials::Passport::try_from(unvalidated))
+        .map(credentials::Passport::try_from)
         .filter(|result| result.is_ok())
         .count();
     println!("Part 2: {}", valid_passports);
