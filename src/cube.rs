@@ -131,9 +131,7 @@ impl Space3 {
         for (coord, _val) in self.states.iter() {
             let neighbors = coord.neighbors();
             for n in neighbors.into_iter() {
-                if !new_states.contains_key(&n) {
-                    new_states.insert(n, State::Inactive);
-                }
+                new_states.entry(n).or_insert(State::Inactive);
             }
         }
         self.states = new_states;
@@ -228,9 +226,7 @@ impl Space4 {
         for (coord, _val) in self.states.iter() {
             let neighbors = coord.neighbors();
             for n in neighbors.into_iter() {
-                if !new_states.contains_key(&n) {
-                    new_states.insert(n, State::Inactive);
-                }
+                new_states.entry(n).or_insert(State::Inactive);
             }
         }
         self.states = new_states;
