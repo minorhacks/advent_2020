@@ -21,7 +21,7 @@ impl std::str::FromStr for Map {
     fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
         let spaces = s
             .trim()
-            .split("\n")
+            .lines()
             .map(|s| {
                 s.chars()
                     .map(|c| match c {
@@ -32,7 +32,7 @@ impl std::str::FromStr for Map {
                     .collect()
             })
             .collect::<Result<_, _>>()?;
-        Ok(Map { spaces: spaces })
+        Ok(Map { spaces })
     }
 }
 
@@ -94,7 +94,7 @@ mod tests {
             336,
             count_trees_batch(&map, vec![(1, 1), (3, 1), (5, 1), (7, 1), (1, 2)])
                 .into_iter()
-                .fold(1, |acc, n| acc * n)
+                .product::<usize>()
         )
     }
 }

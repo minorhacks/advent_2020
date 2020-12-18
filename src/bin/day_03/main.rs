@@ -10,6 +10,6 @@ fn main() {
     let trees_product =
         toboggan::count_trees_batch(&map, vec![(1, 1), (3, 1), (5, 1), (7, 1), (1, 2)])
             .into_iter()
-            .fold(1, |acc, n| acc * n);
+            .product::<usize>();
     println!("Part 2: {}", trees_product);
 }
