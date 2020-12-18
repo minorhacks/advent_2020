@@ -116,6 +116,12 @@ impl std::str::FromStr for InputV2 {
     }
 }
 
+impl Default for Memory {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Memory {
     pub fn new() -> Memory {
         Memory {
@@ -163,8 +169,8 @@ impl Mask {
         (0..=2u32.pow(self.dont_cares.len() as u32) - 1)
             .map(Self::bits_set)
             .map(|set_idx| {
-                let mut addr = addr.clone();
-                addr = addr | self.bits_set;
+                let mut addr = addr;
+                addr |= self.bits_set;
                 for (i, val) in self.dont_cares.iter().enumerate() {
                     addr = match val {
                         val if set_idx.contains(&i) => addr | (1 << val),
@@ -182,7 +188,7 @@ impl Mask {
             if i & 1 == 1 {
                 v.push(pos);
             }
-            i = i >> 1;
+            i >>= 1;
             pos += 1;
         }
         v
@@ -205,7 +211,7 @@ mem[26] = 1";
 
     #[test]
     fn test_writes() {
-        let mut mem = Memory::new();
+        let mut mem: Memory = Default::default();
         let _ = TEST_INPUT
             .trim()
             .lines()
@@ -217,7 +223,7 @@ mem[26] = 1";
 
     #[test]
     fn test_writes_v2() {
-        let mut mem = Memory::new();
+        let mut mem: Memory = Default::default();
         let _ = TEST_INPUT_V2
             .trim()
             .lines()
