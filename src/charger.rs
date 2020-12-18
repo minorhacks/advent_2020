@@ -4,7 +4,7 @@ use std::collections::VecDeque;
 fn calc_deltas(charger_list: &[i32]) -> Vec<i32> {
     let mut charger_list = Vec::from(charger_list);
     charger_list.push(0); // Wall is 0 jolts, implicitly
-    charger_list.sort();
+    charger_list.sort_unstable();
     charger_list.push(charger_list[charger_list.len() - 1] + 3); // Device is max + 3 jolts, implicitly. Max is now the last element after sorting.
 
     let mut deltas = Vec::new();
@@ -16,11 +16,10 @@ fn calc_deltas(charger_list: &[i32]) -> Vec<i32> {
 
 pub fn difference_distribution(charger_list: &[i32]) -> HashMap<i32, usize> {
     let deltas = calc_deltas(charger_list);
-    let distribution = deltas.into_iter().fold(HashMap::new(), |mut acc, delta| {
+    deltas.into_iter().fold(HashMap::new(), |mut acc, delta| {
         *acc.entry(delta).or_insert(0) += 1;
         acc
-    });
-    distribution
+    })
 }
 
 fn tribonacci_lookup(len: usize) -> HashMap<usize, i64> {
@@ -54,7 +53,7 @@ pub fn valid_combinations_count(charger_list: &[i32]) -> i64 {
         .map(|delta| delta.to_string())
         .collect::<Vec<_>>()
         .join("")
-        .split("3")
+        .split('3')
         .filter(|s| !s.is_empty())
         .map(|ones_str| lookup.get(&ones_str.len()).unwrap())
         .product()
@@ -64,7 +63,7 @@ pub fn valid_combinations_count(charger_list: &[i32]) -> i64 {
 #[allow(dead_code)]
 fn valid_combinations_count_naive(charger_list: &[i32]) -> usize {
     let mut charger_list = Vec::from(charger_list);
-    charger_list.sort();
+    charger_list.sort_unstable();
     let &max = charger_list.iter().max().unwrap();
     let mut combos = VecDeque::new();
     let mut combos_count = 0;
@@ -119,12 +118,12 @@ mod tests {
         assert_eq!(8, valid_combinations_count(TEST_INPUT_1));
         assert_eq!(19208, valid_combinations_count(TEST_INPUT_2));
 
-        assert_eq!(1, valid_combinations_count(&vec![3, 4, 7])); // 3 1 3
-        assert_eq!(2, valid_combinations_count(&vec![3, 4, 5, 8])); // 3 1 1 3
-        assert_eq!(4, valid_combinations_count(&vec![3, 4, 5, 6, 9])); // 3 1 1 1 3
-        assert_eq!(7, valid_combinations_count(&vec![3, 4, 5, 6, 7, 10])); // 3 1 1 1 1 3
-        assert_eq!(13, valid_combinations_count(&vec![3, 4, 5, 6, 7, 8, 11])); // 3 1 1 1 1 1 3
-        assert_eq!(24, valid_combinations_count(&vec![3, 4, 5, 6, 7, 8, 9, 12]));
+        assert_eq!(1, valid_combinations_count(&[3, 4, 7])); // 3 1 3
+        assert_eq!(2, valid_combinations_count(&[3, 4, 5, 8])); // 3 1 1 3
+        assert_eq!(4, valid_combinations_count(&[3, 4, 5, 6, 9])); // 3 1 1 1 3
+        assert_eq!(7, valid_combinations_count(&[3, 4, 5, 6, 7, 10])); // 3 1 1 1 1 3
+        assert_eq!(13, valid_combinations_count(&[3, 4, 5, 6, 7, 8, 11])); // 3 1 1 1 1 1 3
+        assert_eq!(24, valid_combinations_count(&[3, 4, 5, 6, 7, 8, 9, 12]));
         // 3 1 1 1 1 1 1 3
     }
 }
