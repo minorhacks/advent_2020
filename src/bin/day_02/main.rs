@@ -2,7 +2,7 @@ use advent_2020::password;
 
 fn main() {
     let contents = std::fs::read_to_string("src/bin/day_02/input.txt").unwrap();
-    let lines = contents.trim().split("\n").collect::<Vec<_>>();
+    let lines = contents.trim().lines().collect::<Vec<_>>();
 
     let acceptable_passwords_count = lines
         .iter()

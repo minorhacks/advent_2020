@@ -25,8 +25,8 @@ impl std::str::FromStr for Policy {
         let (num_1, num_2, c) = scan_fmt!(s, "{}-{} {}", usize, usize, char)?;
         Ok(Policy {
             required_char: c,
-            num_1: num_1,
-            num_2: num_2,
+            num_1,
+            num_2,
         })
     }
 }
