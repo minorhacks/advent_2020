@@ -37,7 +37,7 @@ impl std::str::FromStr for ShuttleList {
     fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
         let ids = s
             .trim()
-            .split(",")
+            .split(',')
             .map(|s| s.parse::<Shuttle>())
             .collect::<Result<Vec<_>>>()?;
         Ok(ShuttleList(ids))
@@ -70,15 +70,15 @@ impl ShuttleList {
                 Shuttle::Id(id) => Some((i, id)),
                 _ => None,
             });
-        let (time, step) = shuttle_iter.nth(0).unwrap();
+        let (time, step) = shuttle_iter.next().unwrap();
         let mut time = time as u64;
-        let mut step = step.clone();
+        let mut step = *step;
         for (offset, &id) in shuttle_iter {
             let offset = offset as u64;
             while (time + offset) % id != 0 {
-                time = time + step;
+                time += step;
             }
-            step = step * id;
+            step *= id;
         }
         time
     }
