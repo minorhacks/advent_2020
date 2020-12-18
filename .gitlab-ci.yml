@@ -6,6 +6,12 @@ test:
     - cargo test --all --release --features expensive_tests
   tags: ["linux"]
 
+lint:
+  script:
+    - rustc --version && cargo --version
+    - cargo clippy --all-features -- -D warnings
+  tags: ["linux"]
+
 variables:
   CARGO_HOME: $CI_PROJECT_DIR/cargo
 
