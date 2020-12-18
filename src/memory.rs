@@ -8,7 +8,7 @@ pub struct Game {
 
 impl Game {
     pub fn new(nums: Vec<usize>) -> Game {
-        let latest = nums.iter().rev().nth(0).unwrap().clone();
+        let latest = *nums.iter().rev().next().unwrap();
         let nums = nums
             .into_iter()
             .enumerate()
