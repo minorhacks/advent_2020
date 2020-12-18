@@ -35,8 +35,7 @@ fn main() {
 
     let my_ticket = my_ticket_section
         .lines()
-        .skip(1)
-        .next()
+        .nth(1)
         .unwrap()
         .parse::<train::Ticket>()
         .unwrap();

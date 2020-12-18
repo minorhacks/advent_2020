@@ -30,7 +30,7 @@ impl std::str::FromStr for Ticket {
     fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
         let nums = s
             .trim()
-            .split(",")
+            .split(',')
             .map(|s| s.parse::<i64>())
             .collect::<std::result::Result<Vec<_>, _>>()
             .map_err(|_| Error::TicketParseError(s.to_string()))?;
@@ -70,14 +70,14 @@ impl std::str::FromStr for Rule {
         let mut colon_split = s.split(": ");
         let field = colon_split
             .next()
-            .ok_or(Error::RuleFieldError(s.to_string()))?
+            .ok_or_else(|| Error::RuleFieldError(s.to_string()))?
             .to_string();
         let ranges = colon_split
             .next()
-            .ok_or(Error::RuleRangesError(s.to_string()))?
+            .ok_or_else(|| Error::RuleRangesError(s.to_string()))?
             .split(" or ")
             .map(|range_str| {
-                let mut iter = range_str.split("-");
+                let mut iter = range_str.split('-');
                 (
                     iter.next().unwrap().parse::<i64>().unwrap(),
                     iter.next().unwrap().parse::<i64>().unwrap(),
@@ -92,8 +92,7 @@ impl Rule {
     fn test(&self, val: i64) -> bool {
         self.ranges
             .iter()
-            .find(|(begin, end)| &val >= begin && &val <= end)
-            .is_some()
+            .any(|(begin, end)| &val >= begin && &val <= end)
     }
 
     pub fn possible_fields(&self, tickets: &[Ticket]) -> HashSet<usize> {
@@ -117,8 +116,7 @@ pub fn resolve_field_map(mut m: HashMap<String, HashSet<usize>>) -> HashMap<Stri
         ret.insert(field.clone(), val);
         m = m
             .into_iter()
-            .map(|(k, v)| {
-                let mut v = v.clone();
+            .map(|(k, mut v)| {
                 v.remove(&val);
                 (k, v)
             })
