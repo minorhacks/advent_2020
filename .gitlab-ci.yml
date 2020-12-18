@@ -3,13 +3,13 @@ image: "rustlang/rust:nightly"
 test:
   script:
     - rustc --version && cargo --version
-    - cargo test --all --release --features expensive_tests
+    - cargo test --all --release --features expensive_tests --color=always
   tags: ["linux"]
 
 lint:
   script:
     - rustc --version && cargo --version
-    - cargo clippy --all-features -- -D warnings
+    - cargo clippy --all-features --color=always -- -D warnings
   tags: ["linux"]
 
 variables:
