@@ -1,12 +1,12 @@
 pub fn find_sum(preamble: &[i64], sum: i64) -> Option<(i64, i64)> {
-    let mut preamble = preamble.iter().cloned().collect::<Vec<_>>();
-    preamble.sort();
+    let mut preamble = preamble.to_vec();
+    preamble.sort_unstable();
     let (mut i, mut j) = (0, preamble.len() - 1);
     while i < j {
         let current_sum = preamble[i] + preamble[j];
         match current_sum {
-            _ if current_sum < sum => i = i + 1,
-            _ if current_sum > sum => j = j - 1,
+            _ if current_sum < sum => i += 1,
+            _ if current_sum > sum => j -= 1,
             _ if current_sum == sum => return Some((preamble[i], preamble[j])),
             _ => panic!("should not get here"),
         };
