@@ -44,8 +44,8 @@ impl std::str::FromStr for Seat {
         }
         match s
             .chars()
-            .nth(0)
-            .ok_or(Error::SeatParseError(s.to_string()))?
+            .next()
+            .ok_or_else(|| Error::SeatParseError(s.to_string()))?
         {
             'L' => Ok(Seat::Empty),
             '#' => Ok(Seat::Occupied),
@@ -113,8 +113,8 @@ impl WaitingArea {
             .map(|row| {
                 (0..self.seats[row].len())
                     .map(|col| {
-                        let surrounding_seats = (-1..=1 as i32)
-                            .cartesian_product(-1..=1 as i32)
+                        let surrounding_seats = (-1..=1)
+                            .cartesian_product(-1..=1)
                             .filter(|&coord| coord != (0, 0))
                             .map(|(delta_row, delta_col)| {
                                 self.get_seat(usize_add(row, delta_row), usize_add(col, delta_col))
@@ -152,8 +152,8 @@ impl WaitingArea {
                         coords = (usize_add(coords.0, dir.0), usize_add(coords.1, dir.1));
                         next = self.get_seat(coords.0, coords.1);
                     }
-                    if next.is_ok() {
-                        seats.push(next.unwrap());
+                    if let Ok(s) = next {
+                        seats.push(s);
                     }
                 }
                 let num_occupied = seats.iter().filter(|&&s| s == &Seat::Occupied).count();
@@ -217,8 +217,8 @@ impl std::str::FromStr for Instruction {
     fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
         match (
             s.chars()
-                .nth(0)
-                .ok_or(Error::InstructionParseError(s.to_string()))?,
+                .next()
+                .ok_or_else(|| Error::InstructionParseError(s.to_string()))?,
             s[1..].parse::<i32>()?,
         ) {
             ('N', num) => Ok(Instruction::North(num)),
@@ -261,6 +261,12 @@ impl std::str::FromStr for Instructions {
     }
 }
 
+impl Default for Ferry {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Ferry {
     pub fn new() -> Ferry {
         Ferry {
@@ -300,6 +306,12 @@ impl Ferry {
     fn orientation_vector(&self) -> (i32, i32) {
         static ORIENTATION_VEC: &[(i32, i32)] = &[(1, 0), (0, -1), (-1, 0), (0, 1)];
         ORIENTATION_VEC[((self.orientation / 90).rem_euclid(4)) as usize]
+    }
+}
+
+impl Default for FerryAndWaypoint {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -399,14 +411,14 @@ F11";
     #[test]
     fn test_ferry_move() {
         let instructions = INSTRUCTIONS_INPUT.parse::<Instructions>().unwrap();
-        let mut ferry = Ferry::new();
+        let mut ferry: Ferry = Default::default();
         ferry.mov(&instructions);
         assert_eq!(25, ferry.distance_from_origin());
     }
     #[test]
     fn test_ferry_waypoint_move() {
         let instructions = INSTRUCTIONS_INPUT.parse::<Instructions>().unwrap();
-        let mut ferry = FerryAndWaypoint::new();
+        let mut ferry: FerryAndWaypoint = Default::default();
         ferry.mov(&instructions);
         assert_eq!(286, ferry.distance_from_origin());
     }
