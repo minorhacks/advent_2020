@@ -10,4 +10,7 @@ fn main() {
 
     let expr_sum: u64 = expr_list.iter().map(|e| e.result()).sum();
     println!("Part 1: {}", expr_sum);
+
+    let expr_sum: u64 = expr_list.iter().map(|e| e.advanced_result()).sum();
+    println!("Part 2: {}", expr_sum);
 }

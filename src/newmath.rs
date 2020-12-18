@@ -27,6 +27,12 @@ struct Context {
     op: Option<Op>,
 }
 
+struct AdvancedContext {
+    acc: u64,
+    op: Option<Op>,
+    mul_stack: VecDeque<u64>,
+}
+
 struct NumBuilder {
     acc: Option<u64>,
 }
@@ -34,6 +40,16 @@ struct NumBuilder {
 impl Context {
     fn new() -> Context {
         Context { acc: 0, op: None }
+    }
+}
+
+impl AdvancedContext {
+    fn new() -> AdvancedContext {
+        AdvancedContext {
+            acc: 0,
+            op: None,
+            mul_stack: VecDeque::new(),
+        }
     }
 }
 
@@ -141,6 +157,53 @@ impl Expr {
         }
         ctx.acc
     }
+
+    pub fn advanced_result(&self) -> u64 {
+        let mut ctx = AdvancedContext::new();
+        let mut stack = VecDeque::new();
+
+        for token in &self.tokens {
+            match token {
+                Token::Num(n) => {
+                    match ctx.op {
+                        None => ctx.acc = *n,
+                        Some(Op::Add) => {
+                            ctx.acc = ctx.acc + n;
+                            ctx.op = None;
+                        }
+                        Some(Op::Mul) => panic!("unexpected mul op"),
+                    };
+                }
+                Token::Op(Op::Add) => ctx.op = Some(Op::Add),
+                Token::Op(Op::Mul) => {
+                    ctx.mul_stack.push_front(ctx.acc);
+                    ctx.acc = 0;
+                    ctx.op = None;
+                }
+
+                Token::OpenParen => {
+                    stack.push_front(ctx);
+                    ctx = AdvancedContext::new();
+                }
+                Token::CloseParen => {
+                    let mut total = ctx.acc;
+                    while !ctx.mul_stack.is_empty() {
+                        total *= ctx.mul_stack.pop_front().unwrap();
+                    }
+                    ctx = stack.pop_front().unwrap();
+                    match ctx.op {
+                        None => ctx.acc = total,
+                        Some(Op::Add) => ctx.acc += total,
+                        Some(Op::Mul) => ctx.mul_stack.push_front(total),
+                    };
+                }
+            }
+        }
+        while !ctx.mul_stack.is_empty() {
+            ctx.acc *= ctx.mul_stack.pop_front().unwrap();
+        }
+        ctx.acc
+    }
 }
 
 #[cfg(test)]
@@ -201,6 +264,27 @@ mod tests {
         assert_eq!(
             13632,
             Expr::from_str("((2 + 4 * 9) * (6 + 9 * 8 + 6) + 6) + 2 + 4 * 2").result()
+        );
+    }
+
+    #[test]
+    fn test_expr_advanced_result() {
+        assert_eq!(
+            231,
+            Expr::from_str("1 + 2 * 3 + 4 * 5 + 6").advanced_result()
+        );
+        assert_eq!(46, Expr::from_str("2 * 3 + (4 * 5)").advanced_result());
+        assert_eq!(
+            1445,
+            Expr::from_str("5 + (8 * 3 + 9 + 3 * 4 * 3)").advanced_result()
+        );
+        assert_eq!(
+            669060,
+            Expr::from_str("5 * 9 * (7 * 3 * 3 + 9 * 3 + (8 + 6 * 4))").advanced_result()
+        );
+        assert_eq!(
+            23340,
+            Expr::from_str("((2 + 4 * 9) * (6 + 9 * 8 + 6) + 6) + 2 + 4 * 2").advanced_result()
         );
     }
 }
