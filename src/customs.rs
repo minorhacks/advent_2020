@@ -33,7 +33,7 @@ impl FormResponses {
         self.0
             .iter()
             .skip(1)
-            .fold(self.0.iter().nth(0).unwrap().clone(), |acc, set| {
+            .fold(self.0.get(0).unwrap().clone(), |acc, set| {
                 acc.intersection(&set).cloned().collect::<HashSet<_>>()
             })
             .len()
