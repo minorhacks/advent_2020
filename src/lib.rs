@@ -7,6 +7,7 @@ pub mod dock;
 pub mod expense;
 pub mod ferry;
 pub mod game_console;
+pub mod jigsaw;
 pub mod luggage;
 pub mod memory;
 pub mod newmath;
