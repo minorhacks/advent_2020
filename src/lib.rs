@@ -11,6 +11,7 @@ pub mod luggage;
 pub mod memory;
 pub mod newmath;
 pub mod password;
+pub mod sea_monster;
 pub mod shuttle;
 pub mod toboggan;
 pub mod train;
