@@ -1,4 +1,5 @@
 pub mod airplane;
+pub mod cards;
 pub mod charger;
 pub mod credentials;
 pub mod cube;
