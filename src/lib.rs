@@ -6,6 +6,7 @@ pub mod customs;
 pub mod dock;
 pub mod expense;
 pub mod ferry;
+pub mod food;
 pub mod game_console;
 pub mod jigsaw;
 pub mod luggage;
