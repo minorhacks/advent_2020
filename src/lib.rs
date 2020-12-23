@@ -3,6 +3,7 @@ pub mod cards;
 pub mod charger;
 pub mod credentials;
 pub mod cube;
+pub mod cups;
 pub mod customs;
 pub mod dock;
 pub mod expense;
