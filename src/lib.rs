@@ -17,6 +17,7 @@ pub mod newmath;
 pub mod password;
 pub mod sea_monster;
 pub mod shuttle;
+pub mod tile;
 pub mod toboggan;
 pub mod train;
 pub mod xmas;
