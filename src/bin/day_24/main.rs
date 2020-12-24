@@ -11,4 +11,7 @@ fn main() {
     let mut map = tile::Map::new();
     map.flip_all(&coords);
     println!("Part 1: {}", map.color_count(&tile::Color::Black));
+
+    map.flip_days(100);
+    println!("Part 2: {}", map.color_count(&tile::Color::Black));
 }
