@@ -2,6 +2,7 @@ pub mod airplane;
 pub mod cards;
 pub mod charger;
 pub mod credentials;
+pub mod crypto;
 pub mod cube;
 pub mod cups;
 pub mod customs;
