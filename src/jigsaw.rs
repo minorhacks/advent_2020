@@ -45,6 +45,8 @@ pub struct Tiles(Vec<Tile>);
 
 pub struct Assembly(Vec<Vec<Tile>>);
 
+pub struct Image(Vec<Vec<i8>>);
+
 impl std::str::FromStr for Tile {
     type Err = Error;
 
@@ -159,6 +161,29 @@ impl Tile {
         }
         tiles
     }
+
+    fn data(&self) -> Vec<Vec<i8>> {
+        self.data
+            .iter()
+            .map(|v| {
+                v.iter()
+                    .rev()
+                    .skip(1)
+                    .rev()
+                    .skip(1)
+                    .map(|c| match c {
+                        '.' => -1,
+                        '#' => 0,
+                        _ => unreachable!(),
+                    })
+                    .collect::<Vec<_>>()
+            })
+            .rev()
+            .skip(1)
+            .rev()
+            .skip(1)
+            .collect::<Vec<_>>()
+    }
 }
 
 impl Tiles {
@@ -232,6 +257,49 @@ impl Assembly {
             self.0.last().unwrap().last().unwrap().id,
         ]
     }
+
+    pub fn image(&self) -> Image {
+        // For each vert group
+        let mut data = Vec::new();
+        for vert_group in self.0.iter() {
+            let mut line = Vec::new();
+            for tile in vert_group {
+                line = data_join(line, tile.data());
+            }
+            data.append(&mut line);
+        }
+        Image(data)
+    }
+}
+
+impl std::fmt::Display for Image {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let s = self
+            .0
+            .iter()
+            .map(|v| {
+                v.iter()
+                    .map(|i| match i {
+                        -1 => ".".to_string(),
+                        _ => i.to_string(),
+                    })
+                    .collect::<Vec<_>>()
+                    .join("")
+            })
+            .join("\n");
+        write!(f, "{}", s)
+    }
+}
+
+fn data_join(data: Vec<Vec<i8>>, next_tile: Vec<Vec<i8>>) -> Vec<Vec<i8>> {
+    let mut new_data = Vec::new();
+    for i in 0..next_tile.len() {
+        let mut data_line = data.get(i).unwrap_or(&Vec::new()).clone();
+        let mut tile_line = next_tile[i].clone();
+        data_line.append(&mut tile_line);
+        new_data.push(data_line);
+    }
+    new_data
 }
 
 #[cfg(test)]
