@@ -98,16 +98,16 @@ impl Direction {
     }
 }
 
-fn rotate(v: &[Vec<char>]) -> Vec<Vec<char>> {
+fn rotate<T: Default + Clone + Copy>(v: &[Vec<T>]) -> Vec<Vec<T>> {
     let (h, w) = (v.len(), v[0].len());
-    let mut rot = vec![vec!['\0'; w]; h];
+    let mut rot = vec![vec![Default::default(); w]; h];
     for (i, j) in (0..h).cartesian_product(0..w) {
         rot[j][w - 1 - i] = v[i][j];
     }
     rot
 }
 
-fn flip_horizontal(v: &[Vec<char>]) -> Vec<Vec<char>> {
+fn flip_horizontal<T: Clone>(v: &[Vec<T>]) -> Vec<Vec<T>> {
     v.iter()
         .map(|inner| {
             let mut rev = inner.clone();
@@ -258,7 +258,7 @@ impl Assembly {
         ]
     }
 
-    pub fn image(&self) -> Image {
+    pub fn images(&self) -> Vec<Image> {
         // For each vert group
         let mut data = Vec::new();
         for vert_group in self.0.iter() {
@@ -268,7 +268,17 @@ impl Assembly {
             }
             data.append(&mut line);
         }
-        Image(data)
+        let mut images = Vec::new();
+        images.push(Image(flip_horizontal(&data)));
+        images.push(Image(data));
+        for _i in 0..3 {
+            let last = images.last().unwrap();
+            let new_image_rotated = Image(flip_horizontal(&rotate(&last.0)));
+            let new_image = Image(rotate(&last.0));
+            images.push(new_image_rotated);
+            images.push(new_image);
+        }
+        images
     }
 }
 
@@ -288,6 +298,58 @@ impl std::fmt::Display for Image {
             })
             .join("\n");
         write!(f, "{}", s)
+    }
+}
+
+impl Image {
+    pub fn mark_sea_monsters(&mut self) -> usize {
+        static SEA_MONSTER: &[&str] = &[
+            "                  # ",
+            "#    ##    ##    ###",
+            " #  #  #  #  #  #   ",
+        ];
+        let mut sea_monster_count = 0;
+        for line in 0..self.0.len() - 3 {
+            for offset in 0..self.0[line].len() - SEA_MONSTER[0].len() {
+                if self.sea_monster_line_matches(line, offset, SEA_MONSTER[0])
+                    && self.sea_monster_line_matches(line + 1, offset, SEA_MONSTER[1])
+                    && self.sea_monster_line_matches(line + 2, offset, SEA_MONSTER[2])
+                {
+                    sea_monster_count += 1;
+                    self.mark_monster_pieces(line, offset, SEA_MONSTER[0]);
+                    self.mark_monster_pieces(line + 1, offset, SEA_MONSTER[1]);
+                    self.mark_monster_pieces(line + 2, offset, SEA_MONSTER[2]);
+                }
+            }
+        }
+        sea_monster_count
+    }
+
+    fn sea_monster_line_matches(&self, line: usize, col: usize, sea_monster_line: &str) -> bool {
+        self.0
+            .get(line)
+            .unwrap()
+            .iter()
+            .skip(col)
+            .take(sea_monster_line.len())
+            .enumerate()
+            .find(|(i, &v)| sea_monster_line.chars().nth(*i).unwrap() == '#' && v == -1)
+            .is_none()
+    }
+
+    fn mark_monster_pieces(&mut self, line: usize, col: usize, sea_monster_line: &str) {
+        for i in 0..sea_monster_line.len() {
+            if sea_monster_line.chars().nth(i).unwrap() == '#' {
+                self.0[line][col + i] += 1;
+            }
+        }
+    }
+
+    pub fn roughness(&self) -> usize {
+        self.0
+            .iter()
+            .map(|v| v.iter().filter(|&&v| v == 0).count())
+            .sum::<usize>()
     }
 }
 
@@ -438,5 +500,35 @@ Tile 3079:
         assert!(corners.contains(&3079));
         assert!(corners.contains(&2971));
         assert!(corners.contains(&1171));
+    }
+
+    #[test]
+    fn test_find_sea_monsters() {
+        let tiles = TEST_INPUT.trim().parse::<Tiles>().unwrap();
+        let mut images = tiles.assemble(3).images();
+        let sea_monsters = images
+            .iter_mut()
+            .filter_map(|i| match i.mark_sea_monsters() {
+                0 => None,
+                i => Some(i),
+            })
+            .next()
+            .unwrap();
+        assert_eq!(2, sea_monsters);
+    }
+
+    #[test]
+    fn test_roughness() {
+        let tiles = TEST_INPUT.trim().parse::<Tiles>().unwrap();
+        let mut images = tiles.assemble(3).images();
+        let image = images
+            .iter_mut()
+            .filter_map(|i| match i.mark_sea_monsters() {
+                0 => None,
+                _ => Some(i),
+            })
+            .next()
+            .unwrap();
+        assert_eq!(273, image.roughness());
     }
 }

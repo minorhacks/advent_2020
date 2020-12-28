@@ -7,4 +7,15 @@ fn main() {
         "Part 1: {}",
         tiles.assemble(12).corner_ids().iter().product::<usize>()
     );
+
+    let mut images = tiles.assemble(12).images();
+    let image = images
+        .iter_mut()
+        .filter_map(|i| match i.mark_sea_monsters() {
+            0 => None,
+            _ => Some(i),
+        })
+        .next()
+        .unwrap();
+    println!("Part 2: {}", image.roughness());
 }
