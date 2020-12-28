@@ -1,4 +1,3 @@
-use std::collections::HashMap;
 use thiserror::Error as ThisError;
 
 #[derive(Debug, ThisError)]
@@ -7,10 +6,8 @@ pub enum Error {
     CupParse(char),
 }
 
-//type Result<T> = std::result::Result<T, Error>;
-
 pub struct Cups {
-    next_map: HashMap<u32, u32>,
+    next_map: Vec<u32>,
     max: u32,
     current: u32,
 }
@@ -19,9 +16,9 @@ impl Cups {
     pub fn new(cup_list: &[u32]) -> Cups {
         let first = *cup_list.iter().next().unwrap();
         let mut i = cup_list.iter().peekable();
-        let mut next_map = HashMap::new();
+        let mut next_map = vec![0; cup_list.len() + 1];
         while let Some(v) = i.next() {
-            next_map.insert(*v, **i.peek().unwrap_or(&&first));
+            next_map[*v as usize] = **i.peek().unwrap_or(&&first);
         }
         let &max = cup_list.iter().max().unwrap();
         Cups {
@@ -33,9 +30,9 @@ impl Cups {
 
     pub fn step(&mut self) {
         // Take current cup
-        let taken_1 = *self.next_map.get(&self.current).unwrap();
-        let taken_2 = *self.next_map.get(&taken_1).unwrap();
-        let taken_3 = *self.next_map.get(&taken_2).unwrap();
+        let taken_1 = self.next_map[self.current as usize];
+        let taken_2 = self.next_map[taken_1 as usize];
+        let taken_3 = self.next_map[taken_2 as usize];
 
         // Calculate new cup, which is src - 1, or keep decrementing mod #cups
         // until we find a cup that isn't picked up
@@ -45,16 +42,14 @@ impl Cups {
         }
 
         // current's next is taken_3's old next
-        self.next_map
-            .insert(self.current, *self.next_map.get(&taken_3).unwrap());
+        self.next_map[self.current as usize] = self.next_map[taken_3 as usize];
         // taken_3's next is dest's old next
-        self.next_map
-            .insert(taken_3, *self.next_map.get(&dest).unwrap());
+        self.next_map[taken_3 as usize] = self.next_map[dest as usize];
         // dest's next is taken_1
-        self.next_map.insert(dest, taken_1);
+        self.next_map[dest as usize] = taken_1;
 
         // Update current
-        self.current = *self.next_map.get(&self.current).unwrap();
+        self.current = self.next_map[self.current as usize];
     }
 
     pub fn run(&mut self, num_steps: usize) {
@@ -64,7 +59,7 @@ impl Cups {
     }
 
     pub fn order_after(&self, c: u32) -> String {
-        let nums = self.first_n_after(c, self.next_map.len() - 1);
+        let nums = self.first_n_after(c, self.next_map.len() - 2);
         nums.iter()
             .map(|i| i.to_string())
             .collect::<Vec<_>>()
@@ -75,7 +70,7 @@ impl Cups {
         let mut first_n = Vec::new();
         let mut travel = c;
         for _i in 0..n {
-            travel = *self.next_map.get(&travel).unwrap();
+            travel = self.next_map[travel as usize];
             first_n.push(travel as u64);
         }
         first_n
@@ -123,7 +118,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg_attr(not(feature = "expensive_tests"), ignore)]
     fn test_million_cups() {
         let all_cups = TEST_ORDER
             .iter()
