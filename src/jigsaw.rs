@@ -54,7 +54,7 @@ impl std::str::FromStr for Tile {
         let mut lines = s.trim().lines();
         let id = lines
             .next()
-            .ok_or_else(|| Error::InvalidTileHeader)?
+            .ok_or(Error::InvalidTileHeader)?
             .trim_start_matches("Tile ")
             .trim_end_matches(':')
             .parse::<TileId>()
@@ -355,9 +355,9 @@ impl Image {
 
 fn data_join(data: Vec<Vec<i8>>, next_tile: Vec<Vec<i8>>) -> Vec<Vec<i8>> {
     let mut new_data = Vec::new();
-    for i in 0..next_tile.len() {
+    for (i, line) in next_tile.iter().enumerate() {
         let mut data_line = data.get(i).unwrap_or(&Vec::new()).clone();
-        let mut tile_line = next_tile[i].clone();
+        let mut tile_line = line.clone();
         data_line.append(&mut tile_line);
         new_data.push(data_line);
     }
