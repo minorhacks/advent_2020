@@ -251,7 +251,7 @@ impl std::str::FromStr for Passport {
 
     fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
         let passport: UnvalidatedPassport = s.parse()?;
-        Ok(Passport::try_from(passport)?)
+        Passport::try_from(passport)
     }
 }
 

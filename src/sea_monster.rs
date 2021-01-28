@@ -101,8 +101,7 @@ impl RuleMap {
 
     pub fn matches(&self, s: &str) -> bool {
         // Keep a list of AlternativeLists, as well as an iter to the string it needs to match
-        let mut alternatives: Vec<(AlternativeList, std::str::Chars)> = Vec::new();
-        alternatives.push((AlternativeList(vec![0]), s.chars()));
+        let mut alternatives = vec![(AlternativeList(vec![0]), s.chars())];
         // While list of AlternativeLists is not empty
         while !alternatives.is_empty() {
             // Pop an AlternativeList and string iter

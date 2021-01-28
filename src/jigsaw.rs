@@ -140,12 +140,13 @@ impl Tile {
     }
 
     fn rotations(&self) -> Vec<Tile> {
-        let mut tiles = Vec::new();
-        tiles.push(Tile {
-            id: self.id,
-            data: flip_horizontal(&self.data),
-        });
-        tiles.push(self.clone());
+        let mut tiles = vec![
+            Tile {
+                id: self.id,
+                data: flip_horizontal(&self.data),
+            },
+            self.clone(),
+        ];
         for _i in 0..3 {
             let last = tiles.last().unwrap();
             let new_tile_rotated = Tile {
@@ -268,9 +269,7 @@ impl Assembly {
             }
             data.append(&mut line);
         }
-        let mut images = Vec::new();
-        images.push(Image(flip_horizontal(&data)));
-        images.push(Image(data));
+        let mut images = vec![Image(flip_horizontal(&data)), Image(data)];
         for _i in 0..3 {
             let last = images.last().unwrap();
             let new_image_rotated = Image(flip_horizontal(&rotate(&last.0)));
