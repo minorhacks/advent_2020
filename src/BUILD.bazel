@@ -1,0 +1,9 @@
+load("@rust_dependencies//:defs.bzl", "build_crates_from", "crates_from")
+load("@rules_rust//rust:rust.bzl", "rust_library")
+
+rust_library(
+    name = "advent_2020",
+    srcs = glob(["*.rs"]),
+    visibility = ["//src/bin:__pkg__"],
+    deps = crates_from("//:Cargo.toml"),
+)
