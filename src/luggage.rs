@@ -45,14 +45,14 @@ impl RulesGraph {
         let mut node_queue = std::collections::VecDeque::new();
         let node = self
             .0
-            .get(&color)
+            .get(color)
             .ok_or_else(|| Error::ColorNotFoundError(color.0.clone()))?;
         node_queue.push_back(node);
         while !node_queue.is_empty() {
             let node = node_queue.pop_front().unwrap();
             for c in node.held_by.iter() {
                 if colors.insert(c.clone()) {
-                    node_queue.push_back(self.0.get(&c).unwrap());
+                    node_queue.push_back(self.0.get(c).unwrap());
                 }
             }
         }
@@ -121,7 +121,7 @@ fn parse_bag_str(mut s: &str) -> Result<Option<(usize, Color)>> {
 
             let color = Color(
                 s.trim()
-                    .strip_suffix("s")
+                    .strip_suffix('s')
                     .unwrap_or(s)
                     .strip_suffix("bag")
                     .unwrap()
@@ -142,7 +142,7 @@ fn parse_bag_rule(s: &str) -> Result<(Color, Vec<(usize, Color)>)> {
         .map(|s| parse_bag_str(s))
         .collect::<Result<Vec<_>>>()?
         .into_iter()
-        .filter_map(|i| i)
+        .flatten()
         .collect::<Vec<_>>();
     Ok((container_color, contained))
 }

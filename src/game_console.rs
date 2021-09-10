@@ -58,7 +58,7 @@ impl OpCode {
             "nop" => OpCode::Nop(val),
             "acc" => OpCode::Acc(val),
             "jmp" => OpCode::Jmp(val),
-            _ => panic!(format!("unrecognized opcode: {}", fields[0])),
+            _ => panic!("unrecognized opcode: {}", fields[0]),
         }
     }
 }
