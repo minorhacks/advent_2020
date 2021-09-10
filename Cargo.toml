@@ -10,6 +10,10 @@ expensive_tests = []
 [dependencies]
 itertools = "0"
 regex = "1"
+matrixmultiply = "0.3.2"
 ndarray = "0"
 scan_fmt = "0"
 thiserror = "1"
+
+[patch.crates-io]
+matrixmultiply = { git = "https://github.com/minor-fixes/matrixmultiply" }

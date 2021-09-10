@@ -1,0 +1,22 @@
+load("@rust_dependencies//:defs.bzl", "build_crates_from", "crates_from")
+load("@rules_rust//rust:rust.bzl", "rust_binary")
+
+DAY_STRINGS = [
+    "day_" + str(num) if num >= 10 else "day_0" + str(num)
+    for num in range(1, 25)
+]
+
+[
+    rust_binary(
+        name = day_str,
+        srcs = ["{}/main.rs".format(day_str)],
+        deps = ["//src:advent_2020"],
+    )
+    for day_str in DAY_STRINGS
+]
+
+#rust_binary(
+#    name = "day_03",
+#    srcs = ["day_03/main.rs"],
+#    deps = ["//src:advent_2020"],
+#)
