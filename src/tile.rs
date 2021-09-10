@@ -113,12 +113,12 @@ impl std::str::FromStr for Coord {
                         Some(c) => return Err(Error::UnknownDir(c)),
                         None => return Err(Error::UnknownDir(n_or_s)),
                     },
-                    c => panic!(format!("unreachable: {}", c)),
+                    c => panic!("unreachable: {}", c),
                 },
                 Some(e_or_w) if e_or_w == 'e' || e_or_w == 'w' => match e_or_w {
                     'e' => coords.push(Dir::East),
                     'w' => coords.push(Dir::West),
-                    c => panic!(format!("unreachable: {}", c)),
+                    c => panic!("unreachable: {}", c),
                 },
                 Some(c) => return Err(Error::UnknownDir(c)),
             };

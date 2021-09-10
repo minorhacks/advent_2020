@@ -24,7 +24,7 @@ impl FormResponses {
         self.0
             .iter()
             .fold(HashSet::new(), |acc, set| {
-                acc.union(&set).cloned().collect::<HashSet<_>>()
+                acc.union(set).cloned().collect::<HashSet<_>>()
             })
             .len()
     }
@@ -34,7 +34,7 @@ impl FormResponses {
             .iter()
             .skip(1)
             .fold(self.0.get(0).unwrap().clone(), |acc, set| {
-                acc.intersection(&set).cloned().collect::<HashSet<_>>()
+                acc.intersection(set).cloned().collect::<HashSet<_>>()
             })
             .len()
     }

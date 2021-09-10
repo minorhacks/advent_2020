@@ -111,7 +111,7 @@ impl std::str::FromStr for Expr {
                         tokens.push(Token::Op(Op::Mul));
                     }
                     ' ' => (),
-                    _ => panic!(format!("unexpected character: {}", c)),
+                    _ => panic!("unexpected character: {}", c),
                 },
             }
             c = chars_iter.next();

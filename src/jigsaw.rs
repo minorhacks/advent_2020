@@ -325,15 +325,15 @@ impl Image {
     }
 
     fn sea_monster_line_matches(&self, line: usize, col: usize, sea_monster_line: &str) -> bool {
-        self.0
+        !self
+            .0
             .get(line)
             .unwrap()
             .iter()
             .skip(col)
             .take(sea_monster_line.len())
             .enumerate()
-            .find(|(i, &v)| sea_monster_line.chars().nth(*i).unwrap() == '#' && v == -1)
-            .is_none()
+            .any(|(i, &v)| sea_monster_line.chars().nth(i).unwrap() == '#' && v == -1)
     }
 
     fn mark_monster_pieces(&mut self, line: usize, col: usize, sea_monster_line: &str) {
