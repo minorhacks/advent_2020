@@ -271,7 +271,7 @@ mod tests {
         let passport_str = r#"ecl:gry pid:860033327 eyr:2020 hcl:#fffffd
 byr:1937 iyr:2017 cid:147 hgt:183cm"#;
         let passport: UnvalidatedPassport = passport_str.parse().unwrap();
-        assert_eq!(true, passport.has_fields(&valid_passport_fields()))
+        assert!(passport.has_fields(&valid_passport_fields()))
     }
 
     #[test]
@@ -279,7 +279,7 @@ byr:1937 iyr:2017 cid:147 hgt:183cm"#;
         let passport_str = r#"iyr:2013 ecl:amb cid:350 eyr:2023 pid:028048884
 hcl:#cfa07d byr:1929"#;
         let passport: UnvalidatedPassport = passport_str.parse().unwrap();
-        assert_eq!(false, passport.has_fields(&valid_passport_fields()))
+        assert!(passport.has_fields(&valid_passport_fields()))
     }
 
     #[test]
@@ -289,7 +289,7 @@ eyr:2024
 ecl:brn pid:760753108 byr:1931
 hgt:179cm"#;
         let passport: UnvalidatedPassport = passport_str.parse().unwrap();
-        assert_eq!(true, passport.has_fields(&valid_passport_fields()))
+        assert!(passport.has_fields(&valid_passport_fields()))
     }
 
     #[test]
@@ -297,7 +297,7 @@ hgt:179cm"#;
         let passport_str = r#"hcl:#cfa07d eyr:2025 pid:166559648
 iyr:2011 ecl:brn hgt:59in"#;
         let passport: UnvalidatedPassport = passport_str.parse().unwrap();
-        assert_eq!(false, passport.has_fields(&valid_passport_fields()))
+        assert!(passport.has_fields(&valid_passport_fields()))
     }
 
     #[test]

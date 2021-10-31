@@ -367,7 +367,7 @@ fn data_join(data: Vec<Vec<i8>>, next_tile: Vec<Vec<i8>>) -> Vec<Vec<i8>> {
 mod tests {
     use super::*;
 
-    static TEST_INPUT: &str = &r"Tile 2311:
+    static TEST_INPUT: &str = r"Tile 2311:
 ..##.#..#.
 ##..#.....
 #...##..#.

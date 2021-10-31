@@ -129,11 +129,11 @@ pub fn resolve_field_map(mut m: HashMap<String, HashSet<usize>>) -> HashMap<Stri
 mod tests {
     use super::*;
 
-    static TEST_RULES: &str = &r"class: 1-3 or 5-7
+    static TEST_RULES: &str = r"class: 1-3 or 5-7
 row: 6-11 or 33-44
 seat: 13-40 or 45-50";
 
-    static TEST_RULES_2: &str = &r"class: 0-1 or 4-19
+    static TEST_RULES_2: &str = r"class: 0-1 or 4-19
 row: 0-5 or 8-19
 seat: 0-13 or 16-19";
 
@@ -144,11 +144,11 @@ seat: 0-13 or 16-19";
             .lines()
             .map(|line| line.parse::<Rule>().unwrap())
             .collect::<Vec<_>>();
-        assert_eq!(true, "7,1,14".parse::<Ticket>().unwrap().is_valid(&rules));
-        assert_eq!(true, "7,3,47".parse::<Ticket>().unwrap().is_valid(&rules));
-        assert_eq!(false, "40,4,50".parse::<Ticket>().unwrap().is_valid(&rules));
-        assert_eq!(false, "55,2,20".parse::<Ticket>().unwrap().is_valid(&rules));
-        assert_eq!(false, "38,6,12".parse::<Ticket>().unwrap().is_valid(&rules));
+        assert!("7,1,14".parse::<Ticket>().unwrap().is_valid(&rules));
+        assert!("7,3,47".parse::<Ticket>().unwrap().is_valid(&rules));
+        assert!("40,4,50".parse::<Ticket>().unwrap().is_valid(&rules));
+        assert!("55,2,20".parse::<Ticket>().unwrap().is_valid(&rules));
+        assert!("38,6,12".parse::<Ticket>().unwrap().is_valid(&rules));
     }
 
     #[test]
@@ -176,8 +176,8 @@ seat: 0-13 or 16-19";
             .into_iter()
             .map(|str| str.parse::<Ticket>().unwrap())
             .collect::<Vec<_>>();
-        assert_eq!(true, rules[1].possible_fields(&tickets).contains(&0));
-        assert_eq!(true, rules[0].possible_fields(&tickets).contains(&1));
-        assert_eq!(true, rules[2].possible_fields(&tickets).contains(&2));
+        assert!(rules[1].possible_fields(&tickets).contains(&0));
+        assert!(rules[0].possible_fields(&tickets).contains(&1));
+        assert!(rules[2].possible_fields(&tickets).contains(&2));
     }
 }

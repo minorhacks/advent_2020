@@ -34,7 +34,6 @@ pub struct RulesGraph(HashMap<Color, RulesGraphNode>);
 
 #[derive(Debug)]
 struct RulesGraphNode {
-    color: Color,
     held_by: HashSet<Color>,
     holds: Vec<(usize, Color)>,
 }
@@ -72,14 +71,12 @@ impl RulesGraph {
     fn insert(&mut self, c: Color, contains: Vec<(usize, Color)>) {
         for (_quantity, color) in &contains {
             let node = self.0.entry(color.clone()).or_insert(RulesGraphNode {
-                color: color.clone(),
                 held_by: HashSet::new(),
                 holds: Vec::new(),
             });
             node.held_by.insert(c.clone());
         }
-        let node = self.0.entry(c.clone()).or_insert(RulesGraphNode {
-            color: c,
+        let node = self.0.entry(c).or_insert(RulesGraphNode {
             held_by: HashSet::new(),
             holds: Vec::new(),
         });
@@ -95,7 +92,7 @@ impl std::str::FromStr for RulesGraph {
         let _ = s
             .trim()
             .lines()
-            .map(|line| parse_bag_rule(line))
+            .map(parse_bag_rule)
             .map(|pair| {
                 let pair = pair?;
                 rules_graph.insert(pair.0, pair.1);
@@ -139,7 +136,7 @@ fn parse_bag_rule(s: &str) -> Result<(Color, Vec<(usize, Color)>)> {
     let contained = contained
         .trim_end_matches('.')
         .split(',')
-        .map(|s| parse_bag_str(s))
+        .map(parse_bag_str)
         .collect::<Result<Vec<_>>>()?
         .into_iter()
         .flatten()

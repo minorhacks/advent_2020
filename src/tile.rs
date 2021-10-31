@@ -212,7 +212,7 @@ impl Map {
 mod tests {
     use super::*;
 
-    static TEST_INPUT: &str = &r"sesenwnenenewseeswwswswwnenewsewsw
+    static TEST_INPUT: &str = r"sesenwnenenewseeswwswswwnenewsewsw
 neeenesenwnwwswnenewnwwsewnenwseswesw
 seswneswswsenwwnwse
 nwnwneseeswswnenewneswwnewseswneseene

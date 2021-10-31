@@ -88,9 +88,10 @@ impl ExecutionContext {
             if self.executed_instructions.contains(&self.program_counter) {
                 return ExitReason::Loop;
             }
-            if self.program_counter < 0 {
-                panic!("program counter goes negative!");
-            }
+            assert!(
+                !(self.program_counter < 0),
+                "program counter goes negative!"
+            );
             if self.program_counter >= program.codes.len() as i32 {
                 return ExitReason::Terminate;
             }

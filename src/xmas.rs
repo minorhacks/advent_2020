@@ -44,9 +44,9 @@ mod tests {
 
     #[test]
     fn test_find_sum() {
-        assert_eq!(true, find_sum(&TEST_NUMS[0..5], 40).is_some());
-        assert_eq!(true, find_sum(&TEST_NUMS[1..6], 62).is_some());
-        assert_eq!(true, find_sum(&TEST_NUMS[9..14], 127).is_none());
+        assert!(find_sum(&TEST_NUMS[0..5], 40).is_some());
+        assert!(find_sum(&TEST_NUMS[1..6], 62).is_some());
+        assert!(find_sum(&TEST_NUMS[9..14], 127).is_none());
     }
 
     #[test]

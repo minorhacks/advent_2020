@@ -200,7 +200,7 @@ impl Combat {
 mod tests {
     use super::*;
 
-    static TEST_GAME: &str = &r"Player 1:
+    static TEST_GAME: &str = r"Player 1:
 9
 2
 6
