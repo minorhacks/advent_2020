@@ -86,7 +86,7 @@ mod tests {
     fn test_password_frequency_no_b_fails() {
         let line = "1-3 b: cdefg";
         let (policy, password) = parse_password_policy_line(line).unwrap();
-        assert!(meets_policy_frequency(&policy, &password));
+        assert!(!meets_policy_frequency(&policy, &password));
     }
 
     #[test]
@@ -107,13 +107,13 @@ mod tests {
     fn test_password_posiiton_no_b_fails() {
         let line = "1-3 b: cdefg";
         let (policy, password) = parse_password_policy_line(line).unwrap();
-        assert!(meets_policy_position(&policy, &password));
+        assert!(!meets_policy_position(&policy, &password));
     }
 
     #[test]
     fn test_password_posiiton_many_c_fails() {
         let line = "2-9 c: ccccccccc";
         let (policy, password) = parse_password_policy_line(line).unwrap();
-        assert!(meets_policy_position(&policy, &password));
+        assert!(!meets_policy_position(&policy, &password));
     }
 }

@@ -146,9 +146,9 @@ seat: 0-13 or 16-19";
             .collect::<Vec<_>>();
         assert!("7,1,14".parse::<Ticket>().unwrap().is_valid(&rules));
         assert!("7,3,47".parse::<Ticket>().unwrap().is_valid(&rules));
-        assert!("40,4,50".parse::<Ticket>().unwrap().is_valid(&rules));
-        assert!("55,2,20".parse::<Ticket>().unwrap().is_valid(&rules));
-        assert!("38,6,12".parse::<Ticket>().unwrap().is_valid(&rules));
+        assert!(!"40,4,50".parse::<Ticket>().unwrap().is_valid(&rules));
+        assert!(!"55,2,20".parse::<Ticket>().unwrap().is_valid(&rules));
+        assert!(!"38,6,12".parse::<Ticket>().unwrap().is_valid(&rules));
     }
 
     #[test]

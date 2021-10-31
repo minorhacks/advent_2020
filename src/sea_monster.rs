@@ -206,10 +206,10 @@ mod tests {
     fn test_rule_map_matches() {
         let rule_map = TEST_RULES.parse::<RuleMap>().unwrap();
         assert!(rule_map.matches("ababbb"));
-        assert!(rule_map.matches("bababa"));
+        assert!(!rule_map.matches("bababa"));
         assert!(rule_map.matches("abbbab"));
-        assert!(rule_map.matches("aaabbb"));
-        assert!(rule_map.matches("aaaabbb"));
+        assert!(!rule_map.matches("aaabbb"));
+        assert!(!rule_map.matches("aaaabbb"));
     }
 
     #[test]
