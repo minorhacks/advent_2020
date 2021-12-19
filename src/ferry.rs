@@ -73,6 +73,7 @@ impl std::str::FromStr for WaitingArea {
 }
 
 impl WaitingArea {
+    #[must_use]
     pub fn stabilize_adjacent(&self) -> WaitingArea {
         let mut old = self.clone();
         let mut new = old.step_adjacent();
@@ -83,6 +84,7 @@ impl WaitingArea {
         new
     }
 
+    #[must_use]
     pub fn stabilize_first_visible(&self) -> WaitingArea {
         let mut old = self.clone();
         let mut new = old.step_first_visible();

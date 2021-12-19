@@ -78,11 +78,7 @@ impl std::str::FromStr for Tiles {
                 Ok(tile)
             })
             .collect::<Result<Vec<_>>>()?;
-        let tiles = tiles
-            .iter()
-            .map(|t| t.rotations())
-            .flatten()
-            .collect::<Vec<_>>();
+        let tiles = tiles.iter().flat_map(|t| t.rotations()).collect::<Vec<_>>();
         Ok(Tiles(tiles))
     }
 }
