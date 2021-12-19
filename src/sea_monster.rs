@@ -157,14 +157,14 @@ impl RuleMap {
 mod tests {
     use super::*;
 
-    static TEST_RULES: &str = &r#"0: 4 1 5
+    static TEST_RULES: &str = r#"0: 4 1 5
 1: 2 3 | 3 2
 2: 4 4 | 5 5
 3: 4 5 | 5 4
 4: "a"
 5: "b""#;
 
-    static TEST_RULES_2: &str = &r#"42: 9 14 | 10 1
+    static TEST_RULES_2: &str = r#"42: 9 14 | 10 1
 9: 14 27 | 1 26
 10: 23 14 | 28 1
 1: "a"
@@ -199,17 +199,17 @@ mod tests {
     #[test]
     fn test_parse_rule_map() {
         let rule_map = TEST_RULES.parse::<RuleMap>();
-        assert_eq!(true, rule_map.is_ok());
+        assert!(rule_map.is_ok());
     }
 
     #[test]
     fn test_rule_map_matches() {
         let rule_map = TEST_RULES.parse::<RuleMap>().unwrap();
-        assert_eq!(true, rule_map.matches("ababbb"));
-        assert_eq!(false, rule_map.matches("bababa"));
-        assert_eq!(true, rule_map.matches("abbbab"));
-        assert_eq!(false, rule_map.matches("aaabbb"));
-        assert_eq!(false, rule_map.matches("aaaabbb"));
+        assert!(rule_map.matches("ababbb"));
+        assert!(!rule_map.matches("bababa"));
+        assert!(rule_map.matches("abbbab"));
+        assert!(!rule_map.matches("aaabbb"));
+        assert!(!rule_map.matches("aaaabbb"));
     }
 
     #[test]

@@ -108,6 +108,7 @@ impl Space3 {
             .sum()
     }
 
+    #[must_use]
     pub fn step(&self) -> Space3 {
         let mut new = self.clone();
         let _ = self
@@ -203,6 +204,7 @@ impl Space4 {
             .sum()
     }
 
+    #[must_use]
     pub fn step(&self) -> Space4 {
         let mut new = self.clone();
         let _ = self

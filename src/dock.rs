@@ -199,12 +199,12 @@ impl Mask {
 mod tests {
     use super::*;
 
-    static TEST_INPUT: &str = &r"mask = XXXXXXXXXXXXXXXXXXXXXXXXXXXXX1XXXX0X
+    static TEST_INPUT: &str = r"mask = XXXXXXXXXXXXXXXXXXXXXXXXXXXXX1XXXX0X
 mem[8] = 11
 mem[7] = 101
 mem[8] = 0";
 
-    static TEST_INPUT_V2: &str = &r"mask = 000000000000000000000000000000X1001X
+    static TEST_INPUT_V2: &str = r"mask = 000000000000000000000000000000X1001X
 mem[42] = 100
 mask = 00000000000000000000000000000000X0XX
 mem[26] = 1";

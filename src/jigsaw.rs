@@ -78,11 +78,7 @@ impl std::str::FromStr for Tiles {
                 Ok(tile)
             })
             .collect::<Result<Vec<_>>>()?;
-        let tiles = tiles
-            .iter()
-            .map(|t| t.rotations())
-            .flatten()
-            .collect::<Vec<_>>();
+        let tiles = tiles.iter().flat_map(|t| t.rotations()).collect::<Vec<_>>();
         Ok(Tiles(tiles))
     }
 }
@@ -367,7 +363,7 @@ fn data_join(data: Vec<Vec<i8>>, next_tile: Vec<Vec<i8>>) -> Vec<Vec<i8>> {
 mod tests {
     use super::*;
 
-    static TEST_INPUT: &str = &r"Tile 2311:
+    static TEST_INPUT: &str = r"Tile 2311:
 ..##.#..#.
 ##..#.....
 #...##..#.

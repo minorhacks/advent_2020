@@ -181,7 +181,7 @@ impl Menu {
 mod tests {
     use super::*;
 
-    static TEST_MENU: &str = &r"mxmxvkd kfcds sqjhc nhms (contains dairy, fish)
+    static TEST_MENU: &str = r"mxmxvkd kfcds sqjhc nhms (contains dairy, fish)
 trh fvjkl sbzzf mxmxvkd (contains dairy)
 sqjhc fvjkl (contains soy)
 sqjhc mxmxvkd sbzzf (contains fish)";
